@@ -16,3 +16,25 @@
 .signal-dot{height:8px;width:8px;background:#69a64a;border-radius:50%;flex:none}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 @media(max-width:500px){.opportunity-checks>div{align-items:flex-start}.opportunity-checks b{max-width:100%;margin-left:16px;text-align:left}.hero-actions{flex-wrap:wrap}.hero h1{font-size:clamp(43px,12vw,57px)}.nav-actions .button{font-size:12px;padding:10px 12px}}
+
+.lead-table-scroll {
+  overflow-x: auto;
+  padding: 4px;
+  margin-inline: -4px;
+}
+
+.lead-table-scroll:focus-visible,
+.review-heading:focus-visible {
+  outline: 3px solid #4e953f;
+  outline-offset: 2px;
+}
+
+.table-action {
+  min-height: 44px;
+}
+
+@media (max-width: 760px) {
+  .demo-panel { overflow: visible; }
+  .draft-actions { flex-wrap: wrap; }
+  .demo-search { flex-basis: 100%; min-width: 0; }
+}
