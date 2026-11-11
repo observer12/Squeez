@@ -6,6 +6,8 @@ import { businessEmail, businessPhone, hasBusinessContact, phoneHref } from "./c
 import styles from "../discovery.module.css";
 import { websiteLabels, type Location } from "./locations";
 
+const newTab = { target: "_blank", rel: "noopener noreferrer" } as const;
+
 function webLink(value?: string) {
   try {
     if (!value) return;
@@ -96,11 +98,11 @@ export default function Profile({ initial, city, id, marketName }: {
         <h1 id="profile-title">{location.name}</h1>
       </div>
       <dl className={styles.profileFacts}>
-        <div><dt><MapPin size={17} aria-hidden="true" /> Location</dt><dd><a href={directions}>{location.address || location.area || marketName} <ArrowUpRight size={14} aria-hidden="true" /></a></dd></div>
+        <div><dt><MapPin size={17} aria-hidden="true" /> Location</dt><dd><a href={directions} {...newTab}>{location.address || location.area || marketName} <ArrowUpRight size={14} aria-hidden="true" /></a></dd></div>
         <div><dt><Phone size={17} aria-hidden="true" /> Phone</dt><dd>{tel ? <a href={tel}>{phone}</a> : "Unavailable"}</dd></div>
         <div><dt><Mail size={17} aria-hidden="true" /> Email</dt><dd>{email ? <a href={`mailto:${email}`}>{email}</a> : "Unavailable"}</dd></div>
         {location.hours && <div><dt><Clock size={17} aria-hidden="true" /> Listed hours</dt><dd>{location.hours}</dd></div>}
-        {(officialWebsite || listedWebsite) && <div><dt><Globe size={17} aria-hidden="true" /> Website</dt><dd><a href={officialWebsite || listedWebsite} rel="nofollow noreferrer">{new URL((officialWebsite || listedWebsite)!).hostname} <ArrowUpRight size={14} aria-hidden="true" /></a></dd></div>}
+        {(officialWebsite || listedWebsite) && <div><dt><Globe size={17} aria-hidden="true" /> Website</dt><dd><a href={officialWebsite || listedWebsite} {...newTab} rel="nofollow noopener noreferrer">{new URL((officialWebsite || listedWebsite)!).hostname} <ArrowUpRight size={14} aria-hidden="true" /></a></dd></div>}
       </dl>
       <div className={styles.profileStatus} data-website={website.status}>
         <span className={styles.statusDot} data-website={website.status} aria-hidden="true" />{websiteLabels[website.status]}
@@ -111,7 +113,7 @@ export default function Profile({ initial, city, id, marketName }: {
       <section className={styles.profileCard} aria-labelledby="contact-title">
         <h2 id="contact-title">Contact and directions</h2>
         <div className={styles.profileActions}>
-          {contactActions.map(({ label, value, url, icon: Icon }) => url && <a key={label} href={url}>
+          {contactActions.map(({ label, value, url, icon: Icon }) => url && <a key={label} href={url} {...(url.startsWith("http") ? newTab : {})}>
             <span className={styles.profileActionIcon}><Icon size={20} aria-hidden="true" /></span><span><strong>{label}</strong>{value && <small>{value}</small>}</span>
           </a>)}
         </div>
@@ -119,7 +121,7 @@ export default function Profile({ initial, city, id, marketName }: {
       </section>
       {socials.length > 0 && <section className={styles.profileCard} aria-labelledby="social-title">
         <h2 id="social-title">Social profiles</h2>
-        <div className={styles.profileLinks}>{socials.map(({ platform, url }) => <a key={platform} href={url} rel="nofollow noreferrer">{platform} <ArrowUpRight size={16} aria-hidden="true" /></a>)}</div>
+        <div className={styles.profileLinks}>{socials.map(({ platform, url }) => <a key={platform} href={url} {...newTab} rel="nofollow noopener noreferrer">{platform} <ArrowUpRight size={16} aria-hidden="true" /></a>)}</div>
         <p className={styles.profileNote}>{website.status === "live" ? "Links published by the business." : "Community-listed profiles. Check them before contacting."}</p>
       </section>}
       <section className={styles.profileCard} aria-labelledby="source-title">
@@ -127,10 +129,10 @@ export default function Profile({ initial, city, id, marketName }: {
         {website.status === "unlisted" && <p className={styles.profileNote}>The source does not list a website. Check that the business is still operating and whether it has an official site.</p>}
         {website.status === "unknown" && <p className={styles.profileNote}>The available source does not establish the website status.</p>}
         <div className={styles.profileLinks}>
-          {publicSource && <a href={publicSource}>Location record <ArrowUpRight size={16} aria-hidden="true" /></a>}
-          {contactSource && <a href={contactSource}>Contact record <ArrowUpRight size={16} aria-hidden="true" /></a>}
-          {evidenceUrl && website.status === "none" && <a href={evidenceUrl}>Website status evidence <ArrowUpRight size={16} aria-hidden="true" /></a>}
-          {listedWebsite && <a href={listedWebsite} rel="nofollow noreferrer">Listed website · unverified <ArrowUpRight size={16} aria-hidden="true" /></a>}
+          {publicSource && <a href={publicSource} {...newTab}>Location record <ArrowUpRight size={16} aria-hidden="true" /></a>}
+          {contactSource && <a href={contactSource} {...newTab}>Contact record <ArrowUpRight size={16} aria-hidden="true" /></a>}
+          {evidenceUrl && website.status === "none" && <a href={evidenceUrl} {...newTab}>Website status evidence <ArrowUpRight size={16} aria-hidden="true" /></a>}
+          {listedWebsite && <a href={listedWebsite} {...newTab} rel="nofollow noopener noreferrer">Listed website · unverified <ArrowUpRight size={16} aria-hidden="true" /></a>}
         </div>
       </section>
     </div>

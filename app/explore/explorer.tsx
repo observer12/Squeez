@@ -92,7 +92,7 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
         </button>}
       <p role="status">
         {discovery === "ready" ? `${communityLocations.length} additional businesses with email and phone from ` : "Additional listings are sourced from "}
-        <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a>. Coverage and contact details vary.
+        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a>. Coverage and contact details vary.
         {discovery === "error" && " The directory feed is unavailable. The listed businesses still have public contact details."}
       </p>
     </div>
