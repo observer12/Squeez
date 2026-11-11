@@ -31,7 +31,16 @@ jobs:
       - name: Export public business contacts
         run: |
           pip install 'osmium==4.3.2'
-          curl --fail --silent --show-error --retry 2 https://download.geofabrik.de/asia/bangladesh-latest.osm.pbf -o "$RUNNER_TEMP/bangladesh.osm.pbf"
+          for host in download.geofabrik.de download-ext2.geofabrik.de; do
+            if curl --fail --silent --show-error --location --compressed --retry 1 --max-time 180 "https://$host/asia/bangladesh-latest.osm.pbf" -o "$RUNNER_TEMP/bangladesh.osm.pbf" &&
+               head -c 64 "$RUNNER_TEMP/bangladesh.osm.pbf" | grep -aq OSMHeader; then
+              break
+            fi
+            if [ -f "$RUNNER_TEMP/bangladesh.osm.pbf" ]; then
+              file -b "$RUNNER_TEMP/bangladesh.osm.pbf"
+            fi
+          done
+          head -c 64 "$RUNNER_TEMP/bangladesh.osm.pbf" | grep -aq OSMHeader
           node --experimental-strip-types --input-type=module -e 'import {categoryGroups} from "./app/explore/categories.ts"; process.stdout.write(JSON.stringify(categoryGroups))' > "$RUNNER_TEMP/categories.json"
           python scripts/import_bangladesh.py "$RUNNER_TEMP/bangladesh.osm.pbf" "$RUNNER_TEMP/categories.json" data/bangladesh-businesses.json
       - name: Commit the public snapshot
