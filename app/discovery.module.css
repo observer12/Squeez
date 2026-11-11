@@ -97,3 +97,25 @@
 .discoveryAction p{margin:0;color:var(--muted);font-size:.86rem}
 .discoveryAction a{text-decoration:underline}
 .communityLinks{display:flex;flex-wrap:wrap;gap:0 12px}
+
+.shell [data-website=unlisted]{--pin-fill:#e4bd75;--pin-rim:#7e541b;--pin-core:#fff7de}
+.mapColumn{position:relative;min-width:0}
+.detailsOverlay{position:absolute;z-index:3;top:52px;right:12px;width:min(338px,calc(100% - 24px));max-height:calc(100% - 86px);overflow:auto;border-radius:16px;box-shadow:0 12px 35px #17271e45}
+.businessDetails{padding:18px;background:#fff;border:1px solid #dce2d7;border-radius:16px;overflow-wrap:anywhere}
+.businessDetailsHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.businessDetailsHeader h2{font-size:1.15rem;margin:0 0 5px}
+.businessDetailsHeader p{color:var(--muted);font-size:.85rem;margin:0 0 14px}
+.businessDetailsHeader button{display:grid;place-items:center;flex:none;min-width:36px;min-height:36px;background:#f4f6f1;border:1px solid var(--stroke);border-radius:8px;color:var(--dark)}
+.businessFacts{list-style:none;margin:0 0 13px;padding:0;display:grid;gap:8px;color:var(--muted);font-size:.9rem}
+.businessFacts li{display:flex;align-items:flex-start;gap:8px}
+.businessFacts svg,.businessActions svg{flex:none}
+.businessStatus{display:flex;align-items:center;gap:8px;background:#f0f3ed;border-radius:8px;padding:11px 10px;font-size:.9rem;font-weight:750}
+.businessStatus[data-website=live]{background:#e1f6e8}
+.businessStatus[data-website=none],.businessStatus[data-website=unlisted]{background:#fff1d7}
+.businessDetails small{display:block;margin-top:8px;color:var(--muted);font-size:.8rem}
+.businessActions{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
+.businessActions a{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--stroke);border-radius:7px;padding:8px 9px;font-size:.82rem;font-weight:700}
+.businessActions a:hover{text-decoration:underline}
+.businessSocials{margin-top:12px}
+.listOnly .businessDetails{margin-bottom:12px}
+@media(max-width:760px){.detailsOverlay{position:static;width:auto;max-height:none;margin-top:8px;box-shadow:none}}

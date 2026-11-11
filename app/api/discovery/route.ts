@@ -48,6 +48,9 @@ function readPlace(place: OsmPlace): Location[] {
     return url ? [{ platform, url }] : [];
   });
 
+  const listedWebsite = publicLink(tags["contact:website"]) ?? publicLink(tags.website);
+  const address = [tags["addr:housenumber"], tags["addr:street"], tags["addr:suburb"], tags["addr:city"]].filter(Boolean).join(", ");
+
   return [{
     id: `osm-${place.type}-${place.id}`,
     name: name.slice(0, 160),
@@ -55,8 +58,11 @@ function readPlace(place: OsmPlace): Location[] {
     area: (tags["addr:suburb"] || tags["addr:street"] || tags["addr:city"] || "").slice(0, 120),
     coordinates: [lon, lat],
     source: `https://www.openstreetmap.org/${place.type}/${place.id}`,
-    website: { status: "unknown" },
-    listedWebsite: publicLink(tags["contact:website"]) ?? publicLink(tags.website),
+    website: { status: listedWebsite ? "unknown" : "unlisted" },
+    listedWebsite,
+    address: address.slice(0, 200) || undefined,
+    phone: (tags["contact:phone"] || tags.phone)?.slice(0, 80),
+    hours: tags.opening_hours?.slice(0, 200),
     socials,
   }];
 }

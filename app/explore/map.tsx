@@ -18,6 +18,7 @@ const businessClasses = new Set([
 ]);
 
 function visibleBusinesses(instance: Map, market: Market): Location[] {
+  if (instance.getZoom() < 13.5) return [];
   const poiLayer = instance.getStyle()?.layers.find(layer => "source-layer" in layer && layer["source-layer"] === "poi");
   if (!poiLayer || !("source" in poiLayer)) return [];
 
@@ -44,7 +45,7 @@ function visibleBusinesses(instance: Map, market: Market): Location[] {
       source: `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=19/${lat}/${lon}`,
       website: { status: "unknown" },
     });
-    if (places.size >= 100) break;
+    if (places.size >= 180) break;
   }
 
   return [...places.values()];
@@ -57,18 +58,19 @@ type Props = {
   selected?: string;
   tilted: boolean;
   onSelect: (id: string) => void;
+  onVisibleListings?: (locations: Location[]) => void;
   onUnavailable: () => void;
 };
 
-export default function BusinessMap({ readVisibleListings, market, locations, selected, tilted, onSelect, onUnavailable }: Props) {
+export default function BusinessMap({ readVisibleListings, market, locations, selected, tilted, onSelect, onUnavailable, onVisibleListings }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<Map | null>(null);
-  const callbacks = useRef({ onSelect, onUnavailable });
+  const callbacks = useRef({ onSelect, onUnavailable, onVisibleListings });
   const markers = useRef(new globalThis.Map<string, Marker>());
 
   useEffect(() => {
-    callbacks.current = { onSelect, onUnavailable };
-  }, [onSelect, onUnavailable]);
+    callbacks.current = { onSelect, onUnavailable, onVisibleListings };
+  }, [onSelect, onUnavailable, onVisibleListings]);
 
   useEffect(() => {
     if (!container.current) return;
@@ -100,6 +102,14 @@ export default function BusinessMap({ readVisibleListings, market, locations, se
     instance.addControl(new NavigationControl({ showCompass: false }), "top-right");
     const onContextLost = () => callbacks.current.onUnavailable();
     instance.on("webglcontextlost", onContextLost);
+    let previous = "";
+    if (market.city === "Dhaka") instance.on("idle", () => {
+      const visible = visibleBusinesses(instance, market);
+      const signature = visible.map(location => location.id).sort().join("\\n");
+      if (signature === previous) return;
+      previous = signature;
+      callbacks.current.onVisibleListings?.(visible);
+    });
     // Give the style and first viewport time to load on slow connections.
     const timeout = window.setTimeout(() => callbacks.current.onUnavailable(), 18000);
     instance.once("load", () => window.clearTimeout(timeout));
@@ -119,8 +129,9 @@ export default function BusinessMap({ readVisibleListings, market, locations, se
     const instance = map.current;
     if (!instance) return;
     const currentMarkers = markers.current;
+    const visibleIds = new Set(locations.map(location => location.id));
     for (const [id, marker] of currentMarkers) {
-      if (locations.some(location => location.id === id)) continue;
+      if (visibleIds.has(id)) continue;
       marker.remove();
       currentMarkers.delete(id);
     }

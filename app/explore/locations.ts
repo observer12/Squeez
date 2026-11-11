@@ -1,6 +1,7 @@
 export const websiteLabels = {
   live: "Website checked live",
   none: "Confirmed no official website",
+  unlisted: "No website listed in source",
   unknown: "Website status unknown",
 } as const;
 
@@ -8,7 +9,7 @@ export type WebsiteStatus = keyof typeof websiteLabels;
 
 type WebsiteEvidence =
   | { status: "live" | "none"; url: string; checkedOn: string }
-  | { status: "unknown" };
+  | { status: "unknown" | "unlisted" };
 
 export type Coordinates = [longitude: number, latitude: number];
 
@@ -21,6 +22,9 @@ export type Location = {
   source: string;
   website: WebsiteEvidence;
   listedWebsite?: string;
+  address?: string;
+  phone?: string;
+  hours?: string;
   socials?: { platform: string; url: string }[];
 };
 
