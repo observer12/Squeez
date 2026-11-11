@@ -1,0 +1,44 @@
+name: Import Bangladesh business contacts
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/import-bangladesh.yml"
+      - "scripts/import_bangladesh.py"
+      - "app/explore/categories.ts"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bangladesh-data-import
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Export public business contacts
+        run: |
+          pip install 'osmium==4.3.2'
+          curl --fail --silent --show-error --retry 2 https://download.geofabrik.de/asia/bangladesh-latest.osm.pbf -o "$RUNNER_TEMP/bangladesh.osm.pbf"
+          node --experimental-strip-types --input-type=module -e 'import {categoryGroups} from "./app/explore/categories.ts"; process.stdout.write(JSON.stringify(categoryGroups))' > "$RUNNER_TEMP/categories.json"
+          python scripts/import_bangladesh.py "$RUNNER_TEMP/bangladesh.osm.pbf" "$RUNNER_TEMP/categories.json" data/bangladesh-businesses.json
+      - name: Commit the public snapshot
+        run: |
+          git add data/bangladesh-businesses.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Refresh Bangladesh public business contacts'
+          git push origin HEAD:main

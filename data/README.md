@@ -1,0 +1,3 @@
+# Bangladesh business snapshot
+
+The generated `bangladesh-businesses.json` is a subset of the Geofabrik Bangladesh extract of OpenStreetMap. Data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) under the [Open Database License](https://opendatacommons.org/licenses/odbl/1-0/). It contains named businesses in supported categories with both phone and email tags. Nodes use their mapped positions. Ways use the center of their mapped geometry bounds. Missing website tags indicate no website listed in this source. Contact details and operating status require independent checks.
