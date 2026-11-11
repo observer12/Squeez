@@ -32,15 +32,17 @@ Check the production build with:
 npm run build
 ```
 
-## Deploy to Vercel
+## Deploy to Render
 
-1. Connect your GitHub account to Vercel.
-2. Select repository `observer12/Squeez` and import it as a new project.
-3. Choose framework **Next.js** and root directory `./`.
-4. Leave environment variables blank for this public demo.
-5. Deploy and verify `/` and `/dashboard` on the generated preview URL.
+The repository contains a [Render Blueprint](render.yaml) for a Singapore-region Node web service on the paid Starter plan. This is a public preview, **not a working paid SaaS**.
 
-No Vercel account has been connected or deployment verified from this chat yet.
+1. Connect your GitHub account to Render and grant access to `observer12/Squeez`.
+2. In Render, select **New → Blueprint**, choose this repository and its `main` branch.
+3. Review the Blueprint and its projected hosting charges, then approve creation.
+4. Wait for the build and health check to succeed; test `/` and `/dashboard` on the Render URL.
+5. Do not add real billing or business discovery credentials until authentication, data isolation, and server-side entitlement checks are implemented and tested.
+
+The configuration uses `npm run build`, `npm run start`, and Render's injected `PORT`. No secrets are needed for the preview. **Deploy status has not been verified in this conversation.**
 
 ## Roadmap for production
 
