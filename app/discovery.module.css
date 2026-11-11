@@ -69,8 +69,8 @@
 .mapHint{font-size:.85rem;color:var(--muted);margin:0 0 12px}
 .shell [data-website=live]{--pin-fill:#23a65c;--pin-rim:#064b2a;--pin-core:#e3ffe9}
 .shell [data-website=none]{--pin-fill:#ffba29;--pin-rim:#7e4409;--pin-core:#fff3c9;--pin-glow:0 0 8px 2px #ffb81cd9,0 0 17px 4px #ff9d2670}
-.marker{width:32px;height:32px;border:3px solid #fff;border-radius:50%;background:var(--pin-fill,#939e98);box-shadow:var(--pin-glow,0 2px 5px #13271972);display:grid;place-items:center}
-.marker::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--pin-core,#f7f8f5)}
+.marker{width:var(--map-pin-size,22px);height:var(--map-pin-size,22px);padding:0;border:var(--map-pin-stroke,2px) solid #fff;border-radius:50%;background:var(--pin-fill,#939e98);box-shadow:var(--pin-glow,0 2px 5px #13271972);display:grid;place-items:center}
+.marker::after{content:"";width:var(--map-pin-core,6px);height:var(--map-pin-core,6px);border-radius:50%;background:var(--pin-core,#f7f8f5)}
 .marker[aria-pressed=true]{z-index:1;border-color:var(--pin-rim,#525c58);outline:2px solid #fff}
 @media(max-width:760px){
   .header,.hero,.how,.footer,.explore{width:calc(100% - 32px)}

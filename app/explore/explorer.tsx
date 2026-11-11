@@ -25,7 +25,10 @@ export default function Explorer({ market, marketId }: { market: Market; marketI
   const [discovery, setDiscovery] = useState<"idle" | "loading" | "ready" | "map" | "error">("idle");
   const readVisibleListings = useRef<(() => Location[]) | null>(null);
   const [visibleLocations, setVisibleLocations] = useState<Location[]>([]);
-  const locations = [...market.locations, ...communityLocations, ...visibleLocations.filter(location => !communityLocations.some(known => samePlace(known, location)))];
+  const [overviewLocations, setOverviewLocations] = useState<Location[]>([]);
+  const directoryLocations = [...market.locations, ...communityLocations];
+  const mappedLocations = new Map([...overviewLocations, ...visibleLocations].map(location => [location.id, location]));
+  const locations = [...directoryLocations, ...[...mappedLocations.values()].filter(location => !directoryLocations.some(known => samePlace(known, location)))];
   const categories = Array.from(new Set(locations.map(location => location.category))).sort();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
@@ -39,6 +42,23 @@ export default function Explorer({ market, marketId }: { market: Market; marketI
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) setView("2d");
   }, []);
+
+  useEffect(() => {
+    if (marketId !== "dhaka") return;
+    const request = new AbortController();
+    async function loadOverview() {
+      try {
+        const response = await fetch("/api/discovery/overview", { signal: request.signal });
+        if (!response.ok) return;
+        const { locations } = await response.json() as { locations: Location[] };
+        if (!request.signal.aborted) setOverviewLocations(locations);
+      } catch {
+        // Street-level map tiles and the curated listings remain available.
+      }
+    }
+    void loadOverview();
+    return () => request.abort();
+  }, [marketId]);
 
   function uniqueLocations(incoming: Location[]) {
     return incoming.filter(place => !market.locations.some(known => samePlace(known, place)));
@@ -100,7 +120,7 @@ export default function Explorer({ market, marketId }: { market: Market; marketI
       <p role="status">
         {discovery === "ready" || discovery === "map" ? `${discovery === "map" ? visibleLocations.length : communityLocations.length} additional listings from ` : "Additional listings come from "}
         <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a>. Coverage and contact details vary.
-        {marketId === "dhaka" && " Zoom in to see mapped Dhaka businesses. Pins update as you pan."}
+        {marketId === "dhaka" && " Dhaka businesses appear at the city overview, with more pins as you explore each area."}
         {discovery === "map" && " Contact details depend on the available source."}
         {discovery === "error" && " Listings are unavailable here. Zoom in and search the visible map."}
       </p>
