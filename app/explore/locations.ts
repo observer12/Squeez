@@ -41,7 +41,12 @@ const londonLocations: Location[] = [
 
 const dhakaLocations: Location[] = [
   { id: "jamuna", name: "Jamuna Future Park", area: "Kuril", category: "Shopping centre", coordinates: [90.424167, 23.813333], source: "https://commons.wikimedia.org/wiki/Category:Jamuna_Future_Park", website: liveWebsite("https://jamunafuturepark.com/") },
-  { id: "star-cineplex", name: "Star Cineplex · Bashundhara City", area: "Panthapath", category: "Cinema", coordinates: [90.39052, 23.7515], source: "https://mapcarta.com/N4267753293", website: liveWebsite("https://starcineplex.com/about") },
+  { id: "star-cineplex", name: "Star Cineplex · Bashundhara City", area: "Panthapath", category: "Cinema", coordinates: [90.39052, 23.7515], source: "https://mapcarta.com/N4267753293", website: liveWebsite("https://starcineplex.com/about"), socials: [
+    { platform: "Facebook", url: "https://www.facebook.com/MYCINEPLEX" },
+    { platform: "Instagram", url: "https://www.instagram.com/mystarcineplex/" },
+    { platform: "YouTube", url: "https://www.youtube.com/@mySTARCineplex" },
+    { platform: "TikTok", url: "https://www.tiktok.com/@starcineplex" },
+  ] },
   { id: "pan-pacific", name: "Pan Pacific Sonargaon Dhaka", area: "Karwan Bazar", category: "Hotel", coordinates: [90.3941, 23.7496], source: "https://commons.wikimedia.org/wiki/Category:Pan_Pacific_Sonargaon", website: liveWebsite("https://www.panpacific.com/en/hotels-and-resorts/pp-dhaka.html") },
   { id: "intercontinental", name: "InterContinental Dhaka", area: "Shahbag", category: "Hotel", coordinates: [90.3965, 23.741], source: "https://en.wikipedia.org/wiki/InterContinental_Dhaka", website: liveWebsite("https://www.ihg.com/intercontinental/hotels/us/en/dhaka/dachb/hoteldetail") },
   { id: "westin", name: "The Westin Dhaka", area: "Gulshan", category: "Hotel", coordinates: [90.4146, 23.7933], source: "https://en.wikipedia.org/wiki/The_Westin_Dhaka", website: liveWebsite("https://www.marriott.com/en-us/hotels/dacwi-the-westin-dhaka/overview/") },

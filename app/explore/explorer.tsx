@@ -76,7 +76,7 @@ export default function Explorer({ market, marketId }: { market: Market; marketI
         <button type="button" disabled={discovery === "loading"} onClick={loadCommunityLocations}>
           {discovery === "loading" ? "Loading businesses…" : discovery === "map" ? "Retry contact links" : discovery === "error" ? "Retry OpenStreetMap listings" : "Load more businesses"}
         </button>}
-      {(discovery === "map" || discovery === "error") && view !== "list" &&
+      {discovery !== "loading" && discovery !== "ready" && view !== "list" && !mapFailed &&
         <button type="button" onClick={loadMapListings}>Search visible map</button>}
       <p role="status">
         {discovery === "ready" || discovery === "map" ? `${communityLocations.length} additional listings from ` : "Additional listings come from "}
@@ -141,7 +141,7 @@ export default function Explorer({ market, marketId }: { market: Market; marketI
               <small>Checked <time dateTime={location.website.checkedOn}>{location.website.checkedOn}</time></small>
             </div>}
             {(location.listedWebsite || Boolean(location.socials?.length)) && <div className={styles.evidence}>
-              <small>Community-listed links · unverified</small>
+              <small>{location.website.status === "live" ? "Social links from the official site" : "Community-listed links · unverified"}</small>
               <div className={styles.communityLinks}>
                 {location.listedWebsite && <a href={location.listedWebsite} rel="nofollow noreferrer">Listed website <ArrowUpRight size={14} aria-hidden="true" /></a>}
                 {location.socials?.map(({ platform, url }) => <a href={url} key={platform} rel="nofollow noreferrer">{platform} <ArrowUpRight size={14} aria-hidden="true" /></a>)}
