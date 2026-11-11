@@ -47,6 +47,41 @@ const londonLocations: Location[] = [
 
 const dhakaLocations: Location[] = [
   {
+    id: "aarong-lalmatia", name: "Aarong · Lalmatia", area: "Lalmatia", category: "Clothing store",
+    coordinates: [90.37377, 23.7584], source: "https://mapcarta.com/N2327818076",
+    contactSource: "https://www.aarong.com/bgd/contacts", phone: "+880 1973 746946",
+    email: "customerservice.aarong@brac.net", website: liveWebsite("https://www.aarong.com/bgd/contacts"),
+  },
+  {
+    id: "star-tech-idb", name: "Star Tech · IDB Bhaban", area: "Agargaon", category: "Electronics store",
+    address: "Shops 228 and 229, 2nd floor, IDB Bhaban, Agargaon, Dhaka",
+    coordinates: [90.37951, 23.7788], source: "https://bangladesh.worldplaces.me/view-place/48996333-bcs-computer-city.html",
+    contactSource: "https://www.startech.com.bd/information/contact", phone: "+880 9678 002003",
+    email: "webteam@startechbd.com", website: liveWebsite("https://www.startech.com.bd/information/contact"),
+  },
+  {
+    id: "brac-bank-tejgaon", name: "BRAC Bank · Head Office", area: "Tejgaon", category: "Bank",
+    address: "Anik Tower, 220/B Tejgaon–Gulshan Link Road, Dhaka 1208",
+    coordinates: [90.40669, 23.77178], source: "https://mapcarta.com/W161528958",
+    contactSource: "https://www.bracbank.com/en/contact-us", phone: "+880 9611 223344",
+    email: "enquiry@bracbank.com", website: liveWebsite("https://www.bracbank.com/en/contact-us"),
+  },
+  {
+    id: "labaid-specialized", name: "Labaid Specialized Hospital", area: "Dhanmondi", category: "Hospital",
+    address: "House 6, Road 4, Dhanmondi, Dhaka 1205",
+    coordinates: [90.38304, 23.74199], source: "https://mapcarta.com/W438548318",
+    contactSource: "https://www.labaid.com.bd/en/contactUs", phone: "+880 2 58610793",
+    email: "info@labaidgroup.com", website: liveWebsite("https://www.labaid.com.bd/en/hospital/labaid-specialized-hospital"),
+  },
+  {
+    id: "brac-university", name: "BRAC University", area: "Merul Badda", category: "University",
+    address: "Kha 224, Bir Uttam Rafiqul Islam Avenue, Merul Badda, Dhaka 1212",
+    coordinates: [90.4254, 23.7725], source: "https://en.wikipedia.org/wiki/BRAC_University",
+    contactSource: "https://www.bracu.ac.bd/sites/default/files/admission/flyer/Admission%20brochure%20%28UG%29%20%281%29.pdf",
+    phone: "+880 9638 464646", email: "admissions@bracu.ac.bd",
+    website: liveWebsite("https://www.bracu.ac.bd/contact"),
+  },
+  {
     id: "aura-bailey-road", name: "AURA Beauty Lounge", area: "Bailey Road",
     address: "2nd Floor, Gold Palace, 3 New Bailey Road, Dhaka 1000", category: "Beauty salon",
     coordinates: [90.41004, 23.74197], source: "https://mapcarta.com/N4117103292",

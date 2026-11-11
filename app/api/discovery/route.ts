@@ -1,3 +1,4 @@
+import { directoryCategory, directorySelectors } from "../../explore/categories";
 import { businessEmail, businessPhone } from "../../explore/contact";
 import type { Location } from "../../explore/locations";
 
@@ -38,7 +39,7 @@ function publicLink(value?: string): string | undefined {
 function readPlace(place: OsmPlace): Location[] {
   const tags = place.tags;
   const name = (tags?.["name:en"] || tags?.name)?.trim();
-  const category = tags?.shop || tags?.amenity || tags?.tourism || tags?.office;
+  const category = tags && directoryCategory(tags);
   const { lat, lon } = place.center ?? place;
   if (!tags || !name || !category || typeof lat !== "number" || typeof lon !== "number" ||
     !Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180 ||
@@ -59,7 +60,7 @@ function readPlace(place: OsmPlace): Location[] {
   return [{
     id: `osm-${place.type}-${place.id}`,
     name: name.slice(0, 160),
-    category: category.replaceAll("_", " ").replace(/^./, letter => letter.toUpperCase()).slice(0, 64),
+    category,
     area: (tags["addr:suburb"] || tags["addr:street"] || tags["addr:city"] || "").slice(0, 120),
     coordinates: [lon, lat],
     source: `https://www.openstreetmap.org/${place.type}/${place.id}`,
@@ -75,12 +76,7 @@ function readPlace(place: OsmPlace): Location[] {
 
 async function fetchPlaces(city: City) {
   const box = bounds[city];
-  const businesses = [
-    '["shop"]["shop"!~"^(vacant|closed|no)$"]',
-    '["amenity"~"^(restaurant|cafe|fast_food|bar|pub|bank|pharmacy|cinema|marketplace)$"]',
-    '["tourism"~"^(hotel|guest_house|hostel)$"]',
-  ];
-  const selectors = businesses.map(tags => `nwr["name"][~"^(contact:)?phone$"~"."][~"^(contact:)?email$"~"."]${tags}(${box});`).join("");
+  const selectors = directorySelectors().map(tags => `nwr["name"][~"^(contact:)?phone$"~"."][~"^(contact:)?email$"~"."]${tags}(${box});`).join("");
   const query = `[out:json][timeout:6][maxsize:33554432];(${selectors});out center 180;`;
   const endpoints = ["https://overpass-api.de/api/interpreter", "https://overpass.private.coffee/api/interpreter"];
   for (const endpoint of endpoints) {

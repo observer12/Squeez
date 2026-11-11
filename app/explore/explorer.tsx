@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Layers3, List, Map as MapIcon, Mail, MapPin, Phone, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { businessEmail, businessPhone, hasBusinessContact, phoneHref } from "./contact";
+import { categoryGroups } from "./categories";
 import styles from "../discovery.module.css";
 import { websiteLabels, type Location, type Market } from "./locations";
 
@@ -25,7 +26,10 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
   const [communityLocations, setCommunityLocations] = useState<Location[]>([]);
   const [discovery, setDiscovery] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const locations = [...market.locations, ...communityLocations].filter(hasBusinessContact);
-  const categories = Array.from(new Set(locations.map(location => location.category))).sort();
+  const categoryCounts = new Map<string, number>();
+  for (const location of locations) categoryCounts.set(location.category, (categoryCounts.get(location.category) ?? 0) + 1);
+  const included = new Set(categoryGroups.flatMap(group => Object.keys(group.entries)));
+  const otherCategories = [...categoryCounts.keys()].filter(name => !included.has(name)).sort();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
   const [website, setWebsite] = useState<string>(initialWebsite);
@@ -98,8 +102,12 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
       </label>
       <select aria-label="Business category" value={category} onChange={event => setCategory(event.target.value)}>
         <option value="">All categories</option>
-        {category && !categories.includes(category) && <option>{category}</option>}
-        {categories.map(item => <option key={item}>{item}</option>)}
+        {categoryGroups.map(group => <optgroup label={group.label} key={group.label}>
+          {Object.keys(group.entries).map(name => <option key={name} value={name}>{name} ({categoryCounts.get(name) ?? 0})</option>)}
+        </optgroup>)}
+        {otherCategories.length > 0 && <optgroup label="Other categories">
+          {otherCategories.map(name => <option key={name} value={name}>{name} ({categoryCounts.get(name)})</option>)}
+        </optgroup>}
       </select>
       <select aria-label="Website status" value={website} onChange={event => setWebsite(event.target.value)}>
         <option value="">Any website status</option>
@@ -129,7 +137,7 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
         <h2 id="results-title">Locations</h2>
         <p role="status">{filtered.length} {filtered.length === 1 ? "location" : "locations"}</p>
         {filtered.length === 0 ? <div className={styles.empty}>
-          <p>No businesses with both public contact details match your filters.</p>
+          <p>No loaded businesses with both public contact details match these filters.</p>
           <button type="button" onClick={() => { setQuery(""); setCategory(""); setWebsite(""); }}>Clear filters</button>
         </div> : <ul className={styles.cards}>
           {filtered.map(location => {

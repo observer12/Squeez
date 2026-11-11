@@ -83,3 +83,5 @@ Scroll over the map to zoom and drag to pan. Use the map's zoom buttons or the L
 Selecting a business opens a dedicated profile. Public contact actions are available when the listing supplies them. Curated records load directly by URL, and a selected map listing is kept in the current browser session so its profile survives a refresh. No messaging is sent by Squeez.
 
 The business explorer includes only listings with both a public business email and a usable phone number. Listings from OpenStreetMap are screened for both fields before being returned. Map-only points are excluded because the basemap does not provide business contact fields. A no-website result indicates a source without an official site listed. It does not establish that no site exists.
+
+The explorer groups business categories by industry. Counts show the businesses currently loaded for the selected market, and a zero count means that no qualifying record is currently loaded. The broader category menu and OpenStreetMap query still require both a public phone and email. The Bangladesh starter dataset covers selected Dhaka locations.
