@@ -31,7 +31,7 @@ export default function BusinessDetails({ location, heading, close }: {
       {websiteLabels[website.status]}
     </div>
     {evidence && <small>Checked <time dateTime={evidence.checkedOn}>{evidence.checkedOn}</time></small>}
-    {website.status === "unlisted" && <small>The source has no website field. An official site may still exist.</small>}
+    {website.status === "unlisted" && <small>The source does not list a website. Check that the business is still operating and whether it has an official site.</small>}
     {website.status === "unknown" && !location.listedWebsite && <small>This source does not establish whether the business has a website.</small>}
     <div className={styles.businessActions}>
       {evidence && <a href={evidence.url}><Globe size={16} aria-hidden="true" />{website.status === "live" ? "Official website" : "Website status evidence"}</a>}

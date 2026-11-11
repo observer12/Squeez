@@ -13,13 +13,13 @@ const BusinessMap = dynamic(() => import("./map"), {
 });
 
 function samePlace(first: Location, second: Location) {
-  const normalize = (name: string) => name.toLowerCase().split(" · ")[0].replace(/[\p{P}\p{Z}]/gu, "");
+  const normalize = (name: string) => name.toLowerCase().split(/ · |\(/)[0].replace(/[\p{P}\p{Z}]/gu, "");
   return normalize(first.name) === normalize(second.name) &&
     Math.abs(first.coordinates[0] - second.coordinates[0]) < .002 &&
     Math.abs(first.coordinates[1] - second.coordinates[1]) < .002;
 }
 
-export default function Explorer({ market, marketId }: { market: Market; marketId: string }) {
+export default function Explorer({ market, marketId, initialWebsite }: { market: Market; marketId: string; initialWebsite: "" | "unlisted" }) {
   const { city, country } = market;
   const [communityLocations, setCommunityLocations] = useState<Location[]>([]);
   const [discovery, setDiscovery] = useState<"idle" | "loading" | "ready" | "map" | "error">("idle");
@@ -32,7 +32,7 @@ export default function Explorer({ market, marketId }: { market: Market; marketI
   const categories = Array.from(new Set(locations.map(location => location.category))).sort();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
-  const [website, setWebsite] = useState("");
+  const [website, setWebsite] = useState<string>(initialWebsite);
   const [selected, setSelected] = useState<Location>();
   const detailHeading = useRef<HTMLHeadingElement>(null);
   const trigger = useRef<HTMLElement | null>(null);
@@ -111,6 +111,11 @@ export default function Explorer({ market, marketId }: { market: Market; marketI
 
   return <>
     <div className={styles.discoveryAction}>
+      {marketId === "dhaka" && <button type="button" aria-pressed={website === "unlisted"} onClick={() => {
+        setWebsite(website === "unlisted" ? "" : "unlisted");
+        setCategory("");
+        setQuery("");
+      }}>No website listed</button>}
       {(discovery === "idle" || discovery === "loading" || discovery === "error" || discovery === "map") &&
         <button type="button" disabled={discovery === "loading"} onClick={loadCommunityLocations}>
           {discovery === "loading" ? "Loading businesses…" : discovery === "map" ? "Retry contact links" : discovery === "error" ? "Retry OpenStreetMap listings" : "Load more businesses"}

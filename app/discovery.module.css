@@ -119,3 +119,5 @@
 .businessSocials{margin-top:12px}
 .listOnly .businessDetails{margin-bottom:12px}
 @media(max-width:760px){.detailsOverlay{position:static;width:auto;max-height:none;margin-top:8px;box-shadow:none}}
+
+.discoveryAction button[aria-pressed=true]{background:#fff1d7;border-color:#aa7830;color:#573607}

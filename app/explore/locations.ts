@@ -44,6 +44,9 @@ const londonLocations: Location[] = [
 ];
 
 const dhakaLocations: Location[] = [
+  { id: "bodhua-saj", name: "Bodhua Saj Beauty Parlor", area: "Mirpur 11", address: "20 1/1, Mirpur 11, Dhaka", category: "Beauty salon", coordinates: [90.37534, 23.81797], source: "https://mapcarta.com/N4322832714", website: { status: "unlisted" } },
+  { id: "sayna", name: "Sayna Beauty Parlor", area: "Mirpur 11", address: "Mirpur 11, Dhaka", category: "Beauty salon", coordinates: [90.37526, 23.81811], source: "https://mapcarta.com/N4322833072", website: { status: "unlisted" } },
+  { id: "tisha", name: "Tisha Beauty Parlor", area: "Mirpur 11", address: "Mirpur 11, Dhaka", category: "Beauty salon", coordinates: [90.37417, 23.81712], source: "https://mapcarta.com/N4331663851", website: { status: "unlisted" } },
   { id: "jamuna", name: "Jamuna Future Park", area: "Kuril", category: "Shopping centre", coordinates: [90.424167, 23.813333], source: "https://commons.wikimedia.org/wiki/Category:Jamuna_Future_Park", website: liveWebsite("https://jamunafuturepark.com/") },
   { id: "star-cineplex", name: "Star Cineplex · Bashundhara City", area: "Panthapath", category: "Cinema", coordinates: [90.39052, 23.7515], source: "https://mapcarta.com/N4267753293", website: liveWebsite("https://starcineplex.com/about"), socials: [
     { platform: "Facebook", url: "https://www.facebook.com/MYCINEPLEX" },
