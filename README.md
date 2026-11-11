@@ -6,8 +6,8 @@ Responsive marketing website and interactive CRM prototype for a future paid bus
 
 ## Current release
 
-- Responsive public landing page
-- Product positioning, features, and proposed subscription plans
+- Responsive public landing page with a Liniqo map illustration
+- London discovery demo at `/explore` with tilted, flat and list views
 - Interactive dashboard with fictional sample businesses
 - Search/filter sample leads, view explainable sample scores and update pipeline stages in browser state
 - Editable, copyable outreach drafts (human-reviewed)
@@ -39,7 +39,7 @@ The repository contains a [Render Blueprint](render.yaml) for a Singapore-region
 1. Connect your GitHub account to Render and grant access to `observer12/Squeez`.
 2. In Render, select **New → Blueprint**, choose this repository and its `main` branch.
 3. Review the Blueprint and its projected hosting charges, then approve creation.
-4. Wait for the build and health check to succeed; test `/` and `/dashboard` on the Render URL.
+4. Wait for the build and health check to succeed; test `/`, `/explore` and `/dashboard` on the Render URL.
 5. Do not add real billing or business discovery credentials until authentication, data isolation, and server-side entitlement checks are implemented and tested.
 
 The configuration uses `npm run build`, `npm run start`, and Render's injected `PORT`. No secrets are needed for the preview. **Deploy status has not been verified in this conversation.**
@@ -56,3 +56,19 @@ The configuration uses `npm run build`, `npm run start`, and Render's injected `
 Avoid committing `.env` files or credentials. Real billing requires an eligible merchant account.
 
 See [implementation plan](docs/LEADATLAS_PLAN.md).
+
+## London discovery demo
+
+The explorer lets freelancers and agencies try location-first research. Each of the four public venues links to the Wikidata record used for its coordinates. Website status and lead suitability are unassessed. The CRM uses a separate fictional dataset.
+
+- MapLibre GL JS renders OpenFreeMap's Positron style without a key. The renderer loads on the explorer only. The map opens flat for reduced-motion users, and the list remains usable without WebGL or a working basemap.
+- To change basemaps, set `NEXT_PUBLIC_MAP_STYLE_URL` to the HTTPS style URL on Render and rebuild. This setting is public. Keep the provider attribution and use a browser-restricted public token if the provider requires one.
+- To connect real discovery, add a server-side provider adapter behind authentication and organization-scoped authorization. Keep provider secrets server-side and enforce quotas there. Return permitted fields, source links and provider-sourced coordinates. Skip map pins for locations without coordinates. Record the source and date of any website review, and keep inconclusive searches distinct from confirmed findings.
+- The landing uses Liniqo's City map with pin under its [asset license](https://liniqo.com/license/). Interface controls use Lucide.
+
+### Smoke checks
+
+1. Follow **Explore London**. Check that tiles and pins load. Select a pin and check its matching card.
+2. Switch between Tilted, 2D and List. Test category and name searches, clear an empty search and open a location source.
+3. Tab through controls at a narrow viewport. Check reduced motion and the list fallback with WebGL disabled.
+4. Open `/dashboard` and check the fictional CRM.

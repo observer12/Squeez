@@ -1,30 +1,46 @@
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, ArrowRight, Check, ChevronRight, CircleDot, Compass, Database, Globe2, Layers3, MapPin, MessageSquareText, Radar, Search, ShieldCheck, Sparkles, Target, Users, Zap } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Layers3, MapPin, Search } from "lucide-react";
+import styles from "./discovery.module.css";
 
-const capabilities = [
-  { icon: Radar, title: "Find the overlooked", desc: "Discover businesses by region and industry, and spot where their digital presence may need attention." },
-  { icon: Target, title: "Focus on high-fit leads", desc: "Prioritize prospects with explainable scoring based on their online footprint, category and outreach readiness." },
-  { icon: Layers3, title: "Own your pipeline", desc: "Organize leads from discovery to conversation, proposal and client. Every opportunity in one place." },
-  { icon: MessageSquareText, title: "Start better conversations", desc: "Create relevant outreach drafts informed by verified details. You review every message before sending." },
-];
 const steps = [
-  { n:"01",title:"Choose a market",body:"Start with a city, location and business category that matches your services." },
-  { n:"02",title:"Spot the opportunity",body:"Review discoverable website and social presence with evidence and a confidence label." },
-  { n:"03",title:"Build the relationship",body:"Save qualified leads to your pipeline and prepare thoughtful, personalized outreach." },
+  { icon: Search, title: "Narrow your search", description: "Filter by business name, neighbourhood or category." },
+  { icon: Layers3, title: "See the market in context", description: "Switch between a tilted map, a flat map and a keyboard-friendly list." },
+  { icon: MapPin, title: "Check the source", description: "Open the public location record behind each pin." },
 ];
-const plans=[
-  {name:"Starter",price:"$9",limit:"100 discovery credits / month",details:["Saved leads & lead scoring","Personalized draft templates","Basic CRM pipeline"], featured:false},
-  {name:"Growth",price:"$29",limit:"1,000 discovery credits / month",details:["Everything in Starter","Advanced filtering & exports","Follow-up tracking"],featured:true},
-  {name:"Agency",price:"$79",limit:"5,000 discovery credits / month",details:["Everything in Growth","Shared team workspace (planned)","Priority support (planned)"],featured:false},
-];
-export default function Home(){return <div className="site">
-  <header className="header"><div className="container nav"><Link className="brand" href="/" aria-label="Squeez home"><span className="brand-glyph">$</span><span>queez<span className="brand-period">.</span></span></Link><nav className="nav-links"><a href="#how">How it works</a><a href="#features">Features</a><a href="#pricing">Pricing</a></nav><div className="nav-actions"><Link className="nav-login" href="/dashboard">View demo</Link><Link className="button button-dark button-sm" href="/dashboard">Explore the app <ArrowUpRight size={16}/></Link></div></div></header>
-  <main><section className="hero container"><div className="hero-copy"><div className="eyebrow"><span className="pulse-dot"/> THE SMARTER WAY TO FIND CLIENTS <ArrowUpRight size={13}/></div><h1>Great clients<br/>are <em>out there.</em><br/>Go find them<span className="brand-period">.</span></h1><p className="hero-desc">Discover businesses with untapped digital potential. Find the right opportunities, make your outreach count, and turn prospects into lasting clients.</p><div className="hero-actions"><Link href="/dashboard" className="button button-dark">Explore live demo <ArrowUpRight size={18}/></Link><a href="#how" className="button button-plain">See how it works <ArrowRight size={17}/></a></div><div className="hero-proof"><span className="small-avatars"><b>A</b><b>M</b><b>J</b></span><span>Built for freelancers, studios<br/>and growth-minded agencies</span></div></div>
-  <div className="hero-visual"><div className="visual-top"><div><span className="small-overline">YOUR GROWTH, IN FOCUS</span><h2>Opportunity<br/>looks good on you.</h2></div><span className="orb"><Sparkles size={24}/></span></div><div className="floating-map"><div className="mini-map-grid"/><div className="map-point point-one"><MapPin size={16}/></div><div className="map-point point-two"><MapPin size={16}/></div><div className="map-point point-three"><MapPin size={16}/></div><div className="map-tag"><span className="tag-icon"><Search size={16}/></span><span><b>Discover opportunities</b><small>Dhaka · Restaurants</small></span><span className="tag-check"><Check size={14}/></span></div></div><div className="stat-tiles"><div className="stat-tile"><span className="stat-label">Opportunity score</span><strong>92<span>/100</span></strong><div className="stat-bar"><i/></div><small>Strong digital growth potential</small></div><div className="stat-tile dark-tile"><div className="tiny-card-top"><span>Lead pipeline</span><CircleDot size={15}/></div><div className="tile-chart"><i/><i/><i/><i/><i/><i/><i/></div><div className="tile-bottom"><b>Grow smarter.</b><ArrowUpRight size={18}/></div></div></div></div></section>
-  <section className="marquee"><div className="container marquee-inner"><span>ONE WORKSPACE. MORE OPPORTUNITY.</span><div><Compass size={18}/> DISCOVER</div><div><Target size={18}/> QUALIFY</div><div><Users size={18}/> CONNECT</div><div><Zap size={18}/> GROW</div></div></section>
-  <section className="section container" id="features"><div className="section-heading"><div><div className="eyebrow muted"><span className="pulse-dot"/> WHY SQUEEZ</div><h2>Less searching.<br/><em>More closing.</em></h2></div><p>The tools you need to move from your next lead to your next client, designed to work together.</p></div><div className="feature-grid">{capabilities.map(({icon:Icon,title,desc},i)=><article className="feature-card" key={title}><div className="feature-card-top"><span className="feature-icon"><Icon size={23}/></span><span className="feature-no">0{i+1} / 04</span></div><div><h3>{title}</h3><p>{desc}</p></div><ArrowUpRight size={18} className="feature-arrow"/></article>)}</div></section>
-  <section className="work-section" id="how"><div className="container"><div className="section-heading"><div><div className="eyebrow muted"><span className="pulse-dot"/> THE PROCESS</div><h2>From unknown to<br/><em>unmissable.</em></h2></div><p>Three simple steps to finding growth opportunities where others aren't looking.</p></div><div className="steps">{steps.map(s=><div className="step" key={s.n}><span className="step-num">{s.n}</span><div><h3>{s.title}</h3><p>{s.body}</p></div><ChevronRight size={23}/></div>)}</div></div></section>
-  <section className="section container" id="pricing"><div className="section-heading"><div><div className="eyebrow muted"><span className="pulse-dot"/> SIMPLE PRICING</div><h2>Invest in your<br/><em>next big client.</em></h2></div><p>Plans designed for your pace. These are proposed launch prices; subscriptions are not yet available.</p></div><div className="pricing-grid">{plans.map(plan=><article className={plan.featured?"price-card featured":"price-card"} key={plan.name}>{plan.featured&&<span className="popular">MOST POPULAR</span>}<span className="price-name">{plan.name}</span><div className="price"><strong>{plan.price}</strong><span>/month</span></div><p className="price-limit">{plan.limit}</p><div className="price-divider"/><ul>{plan.details.map(d=><li key={d}><Check size={17}/>{d}</li>)}</ul><Link href="/dashboard" className={plan.featured?"button button-green pricing-button":"button button-outline pricing-button"}>Explore the demo <ArrowUpRight size={17}/></Link></article>)}</div><p className="price-note"><ShieldCheck size={16}/> Subscription checkout is not enabled. No payment information is collected by this demo.</p></section>
-  <section className="cta-section container"><div><div className="eyebrow light"><span className="pulse-dot"/> YOUR NEXT OPPORTUNITY STARTS HERE</div><h2>Stop scrolling.<br/><em>Start growing.</em></h2><p>Discover the businesses that could become your next success story.</p><Link href="/dashboard" className="button button-green">Explore Squeez <ArrowUpRight size={18}/></Link></div><span className="cta-graphic">$</span></section></main>
-  <footer className="footer"><div className="container footer-inner"><div><Link className="brand" href="/"><span className="brand-glyph">$</span><span>queez<span className="brand-period">.</span></span></Link><p>Find better opportunities. Build better business.</p></div><div className="footer-links"><a href="#features">Features</a><a href="#how">How it works</a><a href="#pricing">Pricing</a><Link href="/dashboard">Demo</Link></div><span>© {new Date().getFullYear()} Squeez · Preview</span></div></footer>
-</div>}
+
+export default function Home() {
+  return <div className={styles.shell}>
+    <header className={styles.header}>
+      <Link className={styles.wordmark} href="/" aria-label="Squeez home">squeez<span>.</span></Link>
+      <nav aria-label="Main navigation">
+        <a href="#how">How it works</a>
+        <Link href="/dashboard">CRM preview <ArrowUpRight size={15} aria-hidden="true" /></Link>
+      </nav>
+    </header>
+    <main>
+      <section className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <p className={styles.kicker}><MapPin size={16} aria-hidden="true" /> Business discovery</p>
+          <h1>Find your next<br />local <em>opportunity.</em></h1>
+          <p>Explore businesses on a street map and open the source behind every location. Start with a guided demo of central London.</p>
+          <Link className={styles.primary} href="/explore">Explore London <ArrowRight size={20} aria-hidden="true" /></Link>
+        </div>
+        <Link className={styles.preview} href="/explore" aria-label="Open the London map demo">
+          <span className={styles.previewTop}><span>London, United Kingdom</span><span>Map demo</span></span>
+          <Image src="/illustrations/map-pin-city.svg" alt="" width={1000} height={1000} priority unoptimized />
+          <span className={styles.previewBottom}><span>Open the map</span><ArrowUpRight size={23} aria-hidden="true" /></span>
+        </Link>
+      </section>
+      <section id="how" className={styles.how} aria-labelledby="how-title">
+        <h2 id="how-title">From map to source</h2>
+        <div className={styles.steps}>
+          {steps.map(({icon: Icon, title, description}) => <article key={title}>
+            <Icon size={24} aria-hidden="true" /><h3>{title}</h3><p>{description}</p>
+          </article>)}
+        </div>
+      </section>
+    </main>
+    <footer className={styles.footer}><span>Squeez · Product preview</span><Link href="/explore">London map demo <ArrowRight size={16} aria-hidden="true" /></Link></footer>
+  </div>;
+}
