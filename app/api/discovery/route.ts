@@ -1,5 +1,7 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { directoryCategory, directorySelectors } from "../../explore/categories";
-import { businessEmail, businessPhone } from "../../explore/contact";
+import { businessEmail, businessPhone, hasBusinessContact } from "../../explore/contact";
 import type { Location } from "../../explore/locations";
 
 const bounds = {
@@ -7,7 +9,7 @@ const bounds = {
   london: "51.496,-0.166,51.526,-0.072",
 } as const;
 
-type City = keyof typeof bounds;
+type City = keyof typeof bounds | "bangladesh";
 type Coordinate = { lat?: number; lon?: number };
 type OsmPlace = Coordinate & {
   type: "node" | "way" | "relation";
@@ -75,15 +77,17 @@ function readPlace(place: OsmPlace): Location[] {
 }
 
 async function fetchPlaces(city: City) {
-  const box = bounds[city];
-  const selectors = directorySelectors().map(tags => `nwr["name"][~"^(contact:)?phone$"~"."][~"^(contact:)?email$"~"."]${tags}(${box});`).join("");
-  const query = `[out:json][timeout:6][maxsize:33554432];(${selectors});out center 180;`;
+  const region = city === "bangladesh" ? "(area.bd)" : `(${bounds[city]})`;
+  const selectors = directorySelectors().map(tags => `nwr["name"][~"^(contact:)?phone$"~"."][~"^(contact:)?email$"~"."]${tags}${region};`).join("");
+  const area = city === "bangladesh" ? 'area["ISO3166-1"="BD"]["admin_level"="2"]->.bd;' : "";
+  const timeout = city === "bangladesh" ? 18 : 6;
+  const query = `[out:json][timeout:${timeout}][maxsize:67108864];${area}(${selectors});out center 180;`;
   const endpoints = ["https://overpass-api.de/api/interpreter", "https://overpass.private.coffee/api/interpreter"];
   for (const endpoint of endpoints) {
     try {
       const url = new URL(endpoint);
       url.searchParams.set("data", query);
-      const response = await fetch(url, { signal: AbortSignal.timeout(7000), cache: "no-store" });
+      const response = await fetch(url, { signal: AbortSignal.timeout(city === "bangladesh" ? 20_000 : 7000), cache: "no-store" });
       if (!response.ok) continue;
       const data = await response.json() as { elements?: OsmPlace[]; remark?: string };
       if (!data.remark && Array.isArray(data.elements)) return data.elements.slice(0, 180).flatMap(readPlace);
@@ -94,9 +98,34 @@ async function fetchPlaces(city: City) {
   throw new Error("OpenStreetMap data unavailable");
 }
 
+let countrySnapshot: Promise<Location[]> | undefined;
+
+function readCountrySnapshot() {
+  countrySnapshot ??= readFile(path.join(process.cwd(), "data", "bangladesh-businesses.json"), "utf8")
+    .then(raw => (JSON.parse(raw) as Location[]).filter(hasBusinessContact))
+    .catch(() => []);
+  return countrySnapshot;
+}
+
 export async function GET(request: Request) {
-  const city = new URL(request.url).searchParams.get("city");
-  if (city !== "dhaka" && city !== "london") return Response.json({ error: "Unknown market" }, { status: 400 });
+  const { searchParams } = new URL(request.url);
+  const city = searchParams.get("city");
+  if (city !== "dhaka" && city !== "london" && city !== "bangladesh") return Response.json({ error: "Unknown market" }, { status: 400 });
+
+  const id = searchParams.get("id");
+  if (city === "bangladesh") {
+    const snapshot = await readCountrySnapshot();
+    if (snapshot.length) {
+      if (id) return Response.json({ locations: snapshot.filter(place => place.id === id) });
+      const requested = Number(searchParams.get("offset"));
+      const offset = Number.isSafeInteger(requested) && requested > 0 ? requested : 0;
+      const limit = 180;
+      return Response.json({
+        locations: snapshot.slice(offset, offset + limit),
+        nextOffset: offset + limit < snapshot.length ? offset + limit : null,
+      }, { headers: { "Cache-Control": "public, max-age=300" } });
+    }
+  }
 
   let entry = cache.get(city);
   if (!entry || entry.expires <= Date.now()) {
@@ -110,7 +139,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    return Response.json({ locations: await entry.results }, {
+    const locations = await entry.results;
+    return Response.json({ locations: id ? locations.filter(place => place.id === id) : locations, nextOffset: null }, {
       headers: { "Cache-Control": "public, max-age=60, s-maxage=300" },
     });
   } catch {

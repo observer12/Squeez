@@ -2,16 +2,16 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import styles from "../../discovery.module.css";
 import { hasBusinessContact } from "../contact";
-import { markets } from "../locations";
+import { getMarketId, markets } from "../locations";
 import Profile from "../business-details";
 
 export default async function BusinessPage({ searchParams }: { searchParams: Promise<{ id?: string; city?: string; website?: string }> }) {
   const params = await searchParams;
-  const city = params.city === "dhaka" ? "dhaka" : "london";
+  const city = getMarketId(params.city);
   const market = markets[city];
   const id = typeof params.id === "string" ? params.id.slice(0, 320) : "";
   const initial = market.locations.find(location => location.id === id && hasBusinessContact(location));
-  const back = city === "dhaka" ? `/explore?city=dhaka${params.website === "unlisted" ? "&website=unlisted" : ""}` : "/explore";
+  const back = city !== "london" ? `/explore?city=${city}${params.website === "unlisted" ? "&website=unlisted" : ""}` : "/explore";
 
   return <div className={styles.shell}>
     <header className={styles.header}>

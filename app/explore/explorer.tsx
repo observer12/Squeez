@@ -25,6 +25,7 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
   const { city, country } = market;
   const [communityLocations, setCommunityLocations] = useState<Location[]>([]);
   const [discovery, setDiscovery] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [nextOffset, setNextOffset] = useState<number | null>(0);
   const locations = [...market.locations, ...communityLocations].filter(hasBusinessContact);
   const categoryCounts = new Map<string, number>();
   for (const location of locations) categoryCounts.set(location.category, (categoryCounts.get(location.category) ?? 0) + 1);
@@ -61,10 +62,11 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
   async function loadCommunityLocations() {
     setDiscovery("loading");
     try {
-      const response = await fetch(`/api/discovery?city=${encodeURIComponent(marketId)}`);
+      const response = await fetch(`/api/discovery?city=${encodeURIComponent(marketId)}&offset=${nextOffset ?? 0}`);
       if (!response.ok) throw new Error("Listings unavailable");
-      const { locations: incoming } = await response.json() as { locations: Location[] };
-      setCommunityLocations(uniqueLocations(incoming.filter(hasBusinessContact)));
+      const { locations: incoming, nextOffset: next } = await response.json() as { locations: Location[]; nextOffset?: number | null };
+      setCommunityLocations(previous => [...previous, ...uniqueLocations(incoming.filter(hasBusinessContact))]);
+      setNextOffset(next ?? null);
       setDiscovery("ready");
     } catch {
       setDiscovery("error");
@@ -81,14 +83,14 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
 
   return <>
     <div className={styles.discoveryAction}>
-      {marketId === "dhaka" && <button type="button" aria-pressed={website === "unlisted"} onClick={() => {
+      {marketId !== "london" && <button type="button" aria-pressed={website === "unlisted"} onClick={() => {
         setWebsite(website === "unlisted" ? "" : "unlisted");
         setCategory("");
         setQuery("");
       }}>No website listed</button>}
-      {(discovery === "idle" || discovery === "loading" || discovery === "error") &&
+      {(discovery === "idle" || discovery === "loading" || discovery === "error" || (discovery === "ready" && nextOffset !== null)) &&
         <button type="button" disabled={discovery === "loading"} onClick={loadCommunityLocations}>
-          {discovery === "loading" ? "Loading businesses…" : discovery === "error" ? "Retry OpenStreetMap listings" : "Load more businesses"}
+          {discovery === "loading" ? "Loading businesses…" : discovery === "error" ? "Retry OpenStreetMap listings" : marketId === "bangladesh" ? "Load Bangladesh listings" : "Load more businesses"}
         </button>}
       <p role="status">
         {discovery === "ready" ? `${communityLocations.length} additional businesses with email and phone from ` : "Additional listings are sourced from "}

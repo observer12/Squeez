@@ -4,11 +4,11 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import styles from "../discovery.module.css";
 import Explorer from "./explorer";
 import { hasBusinessContact } from "./contact";
-import { markets } from "./locations";
+import { getMarketId, markets } from "./locations";
 
 export default async function Explore({ searchParams }: { searchParams: Promise<{ city?: string; website?: string }> }) {
   const { city, website } = await searchParams;
-  const marketId = city === "dhaka" ? "dhaka" : "london";
+  const marketId = getMarketId(city);
   const base = markets[marketId];
   const market = { ...base, locations: base.locations.filter(hasBusinessContact) };
   return <div className={styles.shell}>
@@ -21,6 +21,7 @@ export default async function Explore({ searchParams }: { searchParams: Promise<
       <h1>Explore {market.city}</h1>
       <nav className={styles.marketNav} aria-label="Select a market">
         <Link href="/explore" aria-current={marketId === "london" ? "page" : undefined}>London, United Kingdom</Link>
+        <Link href="/explore?city=bangladesh" aria-current={marketId === "bangladesh" ? "page" : undefined}>All Bangladesh</Link>
         <Link href="/explore?city=dhaka" aria-current={marketId === "dhaka" ? "page" : undefined}>Dhaka, Bangladesh</Link>
       </nav>
       <p className={styles.intro}>Browse local businesses with both a public email address and a business phone number.</p>

@@ -85,3 +85,7 @@ Selecting a business opens a dedicated profile. Public contact actions are avail
 The business explorer includes only listings with both a public business email and a usable phone number. Listings from OpenStreetMap are screened for both fields before being returned. Map-only points are excluded because the basemap does not provide business contact fields. A no-website result indicates a source without an official site listed. It does not establish that no site exists.
 
 The explorer groups business categories by industry. Counts show the businesses currently loaded for the selected market, and a zero count means that no qualifying record is currently loaded. The broader category menu and OpenStreetMap query still require both a public phone and email. The Bangladesh starter dataset covers selected Dhaka locations.
+
+### Bangladesh coverage
+
+Use `/explore?city=bangladesh` for the nationwide map. The initial listings include contacts in all eight divisions. **Load Bangladesh listings** uses the nationwide OpenStreetMap import if available, with a limited country query as a fallback. Only records with both a public phone and email qualify. A source directory cannot establish that it includes every business, and contact details may change.

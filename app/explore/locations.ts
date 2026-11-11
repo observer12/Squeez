@@ -121,6 +121,58 @@ const dhakaLocations: Location[] = [
   { id: "westin", name: "The Westin Dhaka", area: "Gulshan", address: "Plot 01, Road 45, Main Gulshan Avenue, Gulshan 2, Dhaka 1212", phone: "+880 9638 228811", contactSource: "https://www.marriott.com/en-us/hotels/dacwi-the-westin-dhaka/overview/", category: "Hotel", coordinates: [90.4146, 23.7933], source: "https://en.wikipedia.org/wiki/The_Westin_Dhaka", website: liveWebsite("https://www.marriott.com/en-us/hotels/dacwi-the-westin-dhaka/overview/") },
 ];
 
+const bangladeshRegionalLocations: Location[] = [
+  {
+    id: "hotel-agrabad", name: "Hotel Agrabad", area: "Chattogram", category: "Hotel",
+    coordinates: [91.81621,22.32697], source: "https://mapcarta.com/32271202",
+    contactSource: "https://agrabadhotel.com/en/contact-us/",
+    phone: "+880 9612 600500", email: "info@agrabadhotel.com",
+    website: liveWebsite("https://agrabadhotel.com/en/contact-us/"),
+  },
+  {
+    id: "rose-view-sylhet", name: "Rose View Hotel", area: "Sylhet", category: "Hotel",
+    coordinates: [91.88128,24.88617], source: "https://mapcarta.com/N9586982045",
+    contactSource: "https://roseviewhotel.com/contact-us.php",
+    phone: "+880 1972 787878", email: "info@roseviewhotel.com",
+    website: liveWebsite("https://roseviewhotel.com/contact-us.php"),
+  },
+  {
+    id: "grand-riverview-rajshahi", name: "Grand Riverview Hotel", area: "Rajshahi", category: "Hotel",
+    coordinates: [88.57942,24.36887], source: "https://mapcarta.com/W1041671688",
+    contactSource: "https://www.bizsouthasia.com/BD/grand-river-view-hotel-01877-766967",
+    phone: "+880 1877 766967", email: "sm@grandriverviewbd.com",
+    website: liveWebsite("https://www.grandriverviewbd.com/"),
+  },
+  {
+    id: "city-inn-khulna", name: "City Inn", area: "Khulna", category: "Hotel",
+    coordinates: [89.55116,22.82091], source: "https://mapcarta.com/W627318257",
+    contactSource: "https://cityinnltd.com/",
+    phone: "+880 1711 298501", email: "info@cityinnltd.com",
+    website: liveWebsite("https://cityinnltd.com/"),
+  },
+  {
+    id: "grand-park-barishal", name: "Hotel Grand Park", area: "Barishal", category: "Hotel",
+    coordinates: [90.36869,22.69139], source: "https://bangladesh.worldplaces.me/hotels-in-barisal/31703484-hotel-grand-park-barishal.html",
+    contactSource: "https://cdn.who.int/media/docs/default-source/searo/bangladesh/procurement-page/rfp_ban_2022_024_managed-meeting-svc.pdf",
+    phone: "+880 431 71508", email: "reservation@hotelgrandparkbarisal.com",
+    website: { status: "unknown" },
+  },
+  {
+    id: "grand-palace-rangpur", name: "Grand Palace Hotel", area: "Rangpur", category: "Hotel",
+    coordinates: [89.3427,25.8114], source: "https://primebooking.com.bd/hotels/140",
+    contactSource: "https://grandpalacebd.com/contact-rangpur/",
+    phone: "+880 1713 558844", email: "info.rangpur@grandpalacebd.com",
+    website: liveWebsite("https://grandpalacebd.com/contact-rangpur/"),
+  },
+  {
+    id: "silver-castle-mymensingh", name: "Silver Castle Hotel and Spa", area: "Mymensingh", category: "Hotel",
+    coordinates: [90.36765,24.77946], source: "https://bangladesh.worldplaces.me/hotel-resorts-in-mymensingh/41984583-silver-castle-hotel-and-spa.html",
+    contactSource: "https://bangladesh.worldplaces.me/hotel-resorts-in-mymensingh/41984583-silver-castle-hotel-and-spa.html",
+    phone: "+880 1974 591112", email: "silvercastlehotel2018@gmail.com",
+    website: { status: "unknown" },
+  },
+];
+
 export type Market = {
   city: string;
   country: string;
@@ -130,5 +182,13 @@ export type Market = {
 
 export const markets = {
   london: { city: "London", country: "United Kingdom", center: [-0.1402, 51.5139], locations: londonLocations },
+  bangladesh: { city: "Bangladesh", country: "Bangladesh", center: [90.3, 24.0], locations: [...dhakaLocations, ...bangladeshRegionalLocations] },
   dhaka: { city: "Dhaka", country: "Bangladesh", center: [90.39052, 23.7515], locations: dhakaLocations },
 } satisfies Record<string, Market>;
+
+export type MarketId = keyof typeof markets;
+
+export function getMarketId(value: unknown): MarketId {
+  if (value === "dhaka" || value === "bangladesh") return value;
+  return "london";
+}

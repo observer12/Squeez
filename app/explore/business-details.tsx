@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowUpRight, Clock, Globe, Mail, MapPin, Navigation, Phone } from "lucide-react";
 import { businessEmail, businessPhone, hasBusinessContact, phoneHref } from "./contact";
 import styles from "../discovery.module.css";
-import { websiteLabels, type Location } from "./locations";
+import { websiteLabels, type Location, type MarketId } from "./locations";
 
 const newTab = { target: "_blank", rel: "noopener noreferrer" } as const;
 
@@ -20,7 +20,7 @@ function webLink(value?: string) {
 
 export default function Profile({ initial, city, id, marketName }: {
   initial?: Location;
-  city: "dhaka" | "london";
+  city: MarketId;
   id: string;
   marketName: string;
 }) {
@@ -43,7 +43,7 @@ export default function Profile({ initial, city, id, marketName }: {
         // Try the public listing source if browser storage is unavailable.
       }
 
-      const endpoint = id.startsWith("osm-") ? `/api/discovery?city=${city}` : undefined;
+      const endpoint = id.startsWith("osm-") ? `/api/discovery?city=${city}&id=${encodeURIComponent(id)}` : undefined;
       try {
         if (!endpoint) return;
         const response = await fetch(endpoint, { signal: request.signal });
