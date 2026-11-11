@@ -42,11 +42,11 @@ export default function BusinessMap({ market, locations, selected, tilted, onSel
         center: market.center,
         zoom: 12.4,
         maxPitch: 60,
-        scrollZoom: false,
+        scrollZoom: true,
         dragRotate: false,
         pitchWithRotate: false,
         touchPitch: false,
-        keyboard: false,
+        keyboard: true,
         attributionControl: { compact: false },
       });
     } catch {

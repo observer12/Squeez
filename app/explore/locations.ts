@@ -16,10 +16,12 @@ export type Location = {
   id: string;
   name: string;
   area: string;
-  category: "Department store" | "Market" | "Toy shop" | "Bookshop" | "Cinema" | "Hotel" | "Shopping centre";
+  category: string;
   coordinates: Coordinates;
   source: string;
   website: WebsiteEvidence;
+  listedWebsite?: string;
+  socials?: { platform: string; url: string }[];
 };
 
 function liveWebsite(url: string): WebsiteEvidence {

@@ -72,3 +72,9 @@ The explorer lets freelancers and agencies try location-first research. Each loc
 2. Switch between 3D, 2D and List. Check that 3D buildings disappear in 2D and that website status filters match the pins and cards. Test category and name searches, clear an empty search and open a location source.
 3. Tab through controls at a narrow viewport. Check reduced motion and the list fallback with WebGL disabled.
 4. Open `/dashboard` and check the fictional CRM.
+
+### Additional business coverage
+
+**Load more businesses** requests up to 180 named shops, hospitality venues and selected amenities in each market's central search area. The fixed market queries go through the Squeez server to Private.coffee's public Overpass API. The server shares results for 30 minutes and backs off after errors. Attribution links to the [OpenStreetMap license](https://www.openstreetmap.org/copyright). Community-listed websites and social accounts are shown as unverified links. The server does not visit those links or infer whether a business has no website from missing fields.
+
+Scroll over the map to zoom and drag to pan. Use the map's zoom buttons or the List view as alternatives. Smoke-test the additional listings in both cities and confirm that their source links and website status remain visible in List view.
