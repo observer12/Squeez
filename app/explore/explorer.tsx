@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Layers3, List, Map as MapIcon, MapPin, Search } from "lucide-react";
 import styles from "../discovery.module.css";
 import { websiteLabels, type Location, type Market } from "./locations";
@@ -14,7 +14,8 @@ const BusinessMap = dynamic(() => import("./map"), {
 export default function Explorer({ market, marketId }: { market: Market; marketId: string }) {
   const { city, country } = market;
   const [communityLocations, setCommunityLocations] = useState<Location[]>([]);
-  const [discovery, setDiscovery] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [discovery, setDiscovery] = useState<"idle" | "loading" | "ready" | "map" | "error">("idle");
+  const readVisibleListings = useRef<(() => Location[]) | null>(null);
   const locations = [...market.locations, ...communityLocations];
   const categories = Array.from(new Set(locations.map(location => location.category))).sort();
   const [query, setQuery] = useState("");
@@ -28,21 +29,35 @@ export default function Explorer({ market, marketId }: { market: Market; marketI
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) setView("2d");
   }, []);
 
+  function showCommunityLocations(incoming: Location[]) {
+    const normalize = (name: string) => name.toLowerCase().split(" · ")[0].replace(/[\p{P}\p{Z}]/gu, "");
+    setCommunityLocations(incoming.filter(place => !market.locations.some(known =>
+      normalize(place.name) === normalize(known.name) &&
+      Math.abs(place.coordinates[0] - known.coordinates[0]) < .002 &&
+      Math.abs(place.coordinates[1] - known.coordinates[1]) < .002
+    )));
+  }
+
+  function loadMapListings() {
+    const visible = readVisibleListings.current?.() ?? [];
+    if (!visible.length) {
+      setDiscovery("error");
+      return;
+    }
+    showCommunityLocations(visible);
+    setDiscovery("map");
+  }
+
   async function loadCommunityLocations() {
     setDiscovery("loading");
     try {
       const response = await fetch(`/api/discovery?city=${encodeURIComponent(marketId)}`);
       if (!response.ok) throw new Error("Listings unavailable");
       const { locations: incoming } = await response.json() as { locations: Location[] };
-      const normalize = (name: string) => name.toLowerCase().split(" · ")[0].replace(/[\p{P}\p{Z}]/gu, "");
-      setCommunityLocations(incoming.filter(place => !market.locations.some(known =>
-        normalize(place.name) === normalize(known.name) &&
-        Math.abs(place.coordinates[0] - known.coordinates[0]) < .002 &&
-        Math.abs(place.coordinates[1] - known.coordinates[1]) < .002
-      )));
+      showCommunityLocations(incoming);
       setDiscovery("ready");
     } catch {
-      setDiscovery("error");
+      loadMapListings();
     }
   }
 
@@ -57,14 +72,17 @@ export default function Explorer({ market, marketId }: { market: Market; marketI
 
   return <>
     <div className={styles.discoveryAction}>
-      {(discovery === "idle" || discovery === "loading" || discovery === "error") &&
+      {(discovery === "idle" || discovery === "loading" || discovery === "error" || discovery === "map") &&
         <button type="button" disabled={discovery === "loading"} onClick={loadCommunityLocations}>
-          {discovery === "loading" ? "Loading businesses…" : discovery === "error" ? "Retry OpenStreetMap listings" : "Load more businesses"}
+          {discovery === "loading" ? "Loading businesses…" : discovery === "map" ? "Retry contact links" : discovery === "error" ? "Retry OpenStreetMap listings" : "Load more businesses"}
         </button>}
+      {(discovery === "map" || discovery === "error") && view !== "list" &&
+        <button type="button" onClick={loadMapListings}>Search visible map</button>}
       <p role="status">
-        {discovery === "ready" ? `${communityLocations.length} additional listings from ` : "Additional listings come from "}
+        {discovery === "ready" || discovery === "map" ? `${communityLocations.length} additional listings from ` : "Additional listings come from "}
         <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a>. Coverage and contact details vary.
-        {discovery === "error" && " Listings are temporarily unavailable."}
+        {discovery === "map" && " Showing the current map area. Contact links require the business feed."}
+        {discovery === "error" && " Listings are unavailable here. Zoom in and search the visible map."}
       </p>
     </div>
     <div className={styles.toolbar}>
@@ -94,7 +112,7 @@ export default function Explorer({ market, marketId }: { market: Market; marketI
     {mapFailed && <p className={styles.notice} role="status">The interactive map is unavailable. You can still search and open every location below.</p>}
     <div className={view === "list" ? styles.listOnly : styles.explorerGrid}>
       {view !== "list" && <div className={styles.mapFrame}>
-        <BusinessMap market={market} locations={filtered} selected={active?.id} tilted={view === "3d"} onSelect={setSelected} onUnavailable={() => {
+        <BusinessMap readVisibleListings={readVisibleListings} market={market} locations={filtered} selected={active?.id} tilted={view === "3d"} onSelect={setSelected} onUnavailable={() => {
           setMapFailed(true);
           setView("list");
         }} />

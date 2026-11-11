@@ -69,14 +69,21 @@ async function fetchPlaces(city: City) {
     '["tourism"~"^(hotel|guest_house|hostel)$"]',
   ];
   const selectors = businesses.map(tags => `nwr["name"]${tags}(${box});`).join("");
-  const query = `[out:json][timeout:12][maxsize:33554432];(${selectors});out center 180;`;
-  const url = new URL("https://overpass.private.coffee/api/interpreter");
-  url.searchParams.set("data", query);
-  const response = await fetch(url, { signal: AbortSignal.timeout(15000), cache: "no-store" });
-  if (!response.ok) throw new Error("OpenStreetMap data unavailable");
-  const data = await response.json() as { elements?: OsmPlace[]; remark?: string };
-  if (data.remark || !Array.isArray(data.elements)) throw new Error("OpenStreetMap returned incomplete data");
-  return data.elements.slice(0, 180).flatMap(readPlace);
+  const query = `[out:json][timeout:6][maxsize:33554432];(${selectors});out center 180;`;
+  const endpoints = ["https://overpass-api.de/api/interpreter", "https://overpass.private.coffee/api/interpreter"];
+  for (const endpoint of endpoints) {
+    try {
+      const url = new URL(endpoint);
+      url.searchParams.set("data", query);
+      const response = await fetch(url, { signal: AbortSignal.timeout(7000), cache: "no-store" });
+      if (!response.ok) continue;
+      const data = await response.json() as { elements?: OsmPlace[]; remark?: string };
+      if (!data.remark && Array.isArray(data.elements)) return data.elements.slice(0, 180).flatMap(readPlace);
+    } catch {
+      // Try the other public instance before falling back to the basemap in the explorer.
+    }
+  }
+  throw new Error("OpenStreetMap data unavailable");
 }
 
 export async function GET(request: Request) {

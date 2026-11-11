@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import { LngLatBounds, Map, Marker, NavigationControl } from "maplibre-gl";
 import styles from "../discovery.module.css";
 import { websiteLabels, type Location, type Market } from "./locations";
@@ -12,7 +12,46 @@ function showOverview(instance: Map, locations: Location[]) {
   instance.fitBounds(bounds, { padding: 55, maxZoom: 14, duration: 0 });
 }
 
+const businessClasses = new Set([
+  "shop", "grocery", "clothing_store", "restaurant", "fast_food", "cafe", "bar", "pub",
+  "lodging", "cinema", "bank", "pharmacy", "laundry", "alcohol_shop",
+]);
+
+function visibleBusinesses(instance: Map, market: Market): Location[] {
+  const poiLayer = instance.getStyle()?.layers.find(layer => "source-layer" in layer && layer["source-layer"] === "poi");
+  if (!poiLayer || !("source" in poiLayer)) return [];
+
+  const features = instance.querySourceFeatures(poiLayer.source, { sourceLayer: "poi" });
+  const { clientWidth, clientHeight } = instance.getContainer();
+  const places = new globalThis.Map<string, Location>();
+
+  for (const feature of features) {
+    if (feature.geometry.type !== "Point" || !businessClasses.has(feature.properties.class)) continue;
+    const name = feature.properties["name:en"] || feature.properties.name_en || feature.properties.name;
+    if (typeof name !== "string" || !name.trim()) continue;
+    const [lon, lat] = feature.geometry.coordinates;
+    const { x, y } = instance.project([lon, lat]);
+    if (x < 0 || y < 0 || x > clientWidth || y > clientHeight) continue;
+
+    const key = `tile-${name}-${lat.toFixed(5)}-${lon.toFixed(5)}`;
+    const kind = String(feature.properties.subclass || feature.properties.class);
+    places.set(key, {
+      id: key,
+      name,
+      category: kind.replaceAll("_", " ").replace(/^./, letter => letter.toUpperCase()),
+      area: market.city,
+      coordinates: [lon, lat],
+      source: `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=19/${lat}/${lon}`,
+      website: { status: "unknown" },
+    });
+    if (places.size >= 100) break;
+  }
+
+  return [...places.values()];
+}
+
 type Props = {
+  readVisibleListings: RefObject<(() => Location[]) | null>;
   market: Market;
   locations: Location[];
   selected?: string;
@@ -21,7 +60,7 @@ type Props = {
   onUnavailable: () => void;
 };
 
-export default function BusinessMap({ market, locations, selected, tilted, onSelect, onUnavailable }: Props) {
+export default function BusinessMap({ readVisibleListings, market, locations, selected, tilted, onSelect, onUnavailable }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<Map | null>(null);
   const callbacks = useRef({ onSelect, onUnavailable });
@@ -55,6 +94,7 @@ export default function BusinessMap({ market, locations, selected, tilted, onSel
     }
 
     map.current = instance;
+    readVisibleListings.current = () => visibleBusinesses(instance, market);
     showOverview(instance, market.locations);
     instance.touchZoomRotate.disableRotation();
     instance.addControl(new NavigationControl({ showCompass: false }), "top-right");
@@ -71,8 +111,9 @@ export default function BusinessMap({ market, locations, selected, tilted, onSel
       currentMarkers.clear();
       instance.remove();
       map.current = null;
+      readVisibleListings.current = null;
     };
-  }, [market]);
+  }, [market, readVisibleListings]);
 
   useEffect(() => {
     const instance = map.current;
