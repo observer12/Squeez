@@ -23,8 +23,11 @@ export default function Home() {
         <div className={styles.heroCopy}>
           <p className={styles.kicker}><MapPin size={16} aria-hidden="true" /> Business discovery</p>
           <h1>Find your next<br />local <em>opportunity.</em></h1>
-          <p>Explore businesses on a street map and open the source behind every location. Start with a guided demo of central London.</p>
-          <Link className={styles.primary} href="/explore">Explore London <ArrowRight size={20} aria-hidden="true" /></Link>
+          <p>Explore businesses on a street map and open the source behind every location. Choose a market to explore a curated selection in London or Dhaka.</p>
+          <div className={styles.marketNav}>
+            <Link className={styles.primary} href="/explore">Explore London <ArrowRight size={20} aria-hidden="true" /></Link>
+            <Link href="/explore?city=dhaka">Explore Dhaka <ArrowRight size={18} aria-hidden="true" /></Link>
+          </div>
         </div>
         <Link className={styles.preview} href="/explore" aria-label="Open the London map demo">
           <span className={styles.previewTop}><span>London, United Kingdom</span><span>Map demo</span></span>

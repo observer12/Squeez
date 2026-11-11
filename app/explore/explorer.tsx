@@ -4,16 +4,16 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { ArrowUpRight, Layers3, List, Map as MapIcon, MapPin, Search } from "lucide-react";
 import styles from "../discovery.module.css";
-import { locations, websiteLabels } from "./locations";
+import { websiteLabels, type Market } from "./locations";
 
 const BusinessMap = dynamic(() => import("./map"), {
   ssr: false,
   loading: () => <p className={styles.mapMessage} role="status">Loading the map…</p>,
 });
 
-const categories = Array.from(new Set(locations.map(location => location.category)));
-
-export default function Explorer() {
+export default function Explorer({ market }: { market: Market }) {
+  const { city, country, locations } = market;
+  const categories = Array.from(new Set(locations.map(location => location.category)));
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
   const [website, setWebsite] = useState("");
@@ -29,7 +29,7 @@ export default function Explorer() {
   const filtered = locations.filter(location =>
     (!category || location.category === category) &&
     (!website || location.website.status === website) &&
-    terms.every(term => `${location.name} ${location.area} ${location.category} London`.toLowerCase().includes(term))
+    terms.every(term => `${location.name} ${location.area} ${location.category} ${city} ${country}`.toLowerCase().includes(term))
   );
   const active = filtered.find(location => location.id === selected);
   const viewOptions = [{ id: "3d", label: "3D", Icon: Layers3 }, { id: "2d", label: "2D", Icon: MapIcon }, { id: "list", label: "List", Icon: List }] as const;
@@ -62,7 +62,7 @@ export default function Explorer() {
     {mapFailed && <p className={styles.notice} role="status">The interactive map is unavailable. You can still search and open every location below.</p>}
     <div className={view === "list" ? styles.listOnly : styles.explorerGrid}>
       {view !== "list" && <div className={styles.mapFrame}>
-        <BusinessMap locations={filtered} selected={active?.id} tilted={view === "3d"} onSelect={setSelected} onUnavailable={() => {
+        <BusinessMap market={market} locations={filtered} selected={active?.id} tilted={view === "3d"} onSelect={setSelected} onUnavailable={() => {
           setMapFailed(true);
           setView("list");
         }} />
@@ -90,7 +90,7 @@ export default function Explorer() {
               </a>
               <small>Checked <time dateTime={location.website.checkedOn}>{location.website.checkedOn}</time></small>
             </div>}
-            <a href={location.source} aria-label={`Location source for ${location.name} on Wikidata`}>Location source <ArrowUpRight size={14} aria-hidden="true" /></a>
+            <a href={location.source} aria-label={`Location source for ${location.name}`}>Location source <ArrowUpRight size={14} aria-hidden="true" /></a>
           </li>)}
         </ul>}
       </section>

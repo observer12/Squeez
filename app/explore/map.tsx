@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { LngLatBounds, Map, Marker, NavigationControl } from "maplibre-gl";
 import styles from "../discovery.module.css";
-import { locations as demoLocations, londonCenter, websiteLabels, type Location } from "./locations";
+import { websiteLabels, type Location, type Market } from "./locations";
 
 const streetZoom = 16;
 
@@ -13,6 +13,7 @@ function showOverview(instance: Map, locations: Location[]) {
 }
 
 type Props = {
+  market: Market;
   locations: Location[];
   selected?: string;
   tilted: boolean;
@@ -20,7 +21,7 @@ type Props = {
   onUnavailable: () => void;
 };
 
-export default function BusinessMap({ locations, selected, tilted, onSelect, onUnavailable }: Props) {
+export default function BusinessMap({ market, locations, selected, tilted, onSelect, onUnavailable }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<Map | null>(null);
   const callbacks = useRef({ onSelect, onUnavailable });
@@ -38,7 +39,7 @@ export default function BusinessMap({ locations, selected, tilted, onSelect, onU
       instance = new Map({
         container: container.current,
         style: process.env.NEXT_PUBLIC_MAP_STYLE_URL || "https://tiles.openfreemap.org/styles/liberty",
-        center: londonCenter,
+        center: market.center,
         zoom: 12.4,
         maxPitch: 60,
         scrollZoom: false,
@@ -54,7 +55,7 @@ export default function BusinessMap({ locations, selected, tilted, onSelect, onU
     }
 
     map.current = instance;
-    showOverview(instance, demoLocations);
+    showOverview(instance, market.locations);
     instance.touchZoomRotate.disableRotation();
     instance.addControl(new NavigationControl({ showCompass: false }), "top-right");
     const onContextLost = () => callbacks.current.onUnavailable();
@@ -71,7 +72,7 @@ export default function BusinessMap({ locations, selected, tilted, onSelect, onU
       instance.remove();
       map.current = null;
     };
-  }, []);
+  }, [market]);
 
   useEffect(() => {
     const instance = map.current;
@@ -115,19 +116,19 @@ export default function BusinessMap({ locations, selected, tilted, onSelect, onU
     const zoom = instance.getZoom();
     const openStreetView = tilted && zoom < streetZoom;
     instance.easeTo({
-      center: activeLocation?.coordinates ?? (openStreetView ? londonCenter : instance.getCenter()),
+      center: activeLocation?.coordinates ?? (openStreetView ? market.center : instance.getCenter()),
       zoom: activeLocation || openStreetView ? Math.max(streetZoom, zoom) : zoom,
       pitch: tilted ? 52 : 0,
       bearing: tilted ? -12 : 0,
       duration: reducedMotion ? 0 : 450,
     });
     return () => { instance.off("load", updateBuildings); };
-  }, [activeLocation, tilted]);
+  }, [activeLocation, market, tilted]);
 
   return <>
-    <div ref={container} className={styles.map} role="region" aria-label="Interactive map of London businesses" />
+    <div ref={container} className={styles.map} role="region" aria-label={`Interactive map of ${market.city} businesses`} />
     <button className={styles.mapOverview} type="button" onClick={() => {
-      if (map.current) showOverview(map.current, locations.length ? locations : demoLocations);
+      if (map.current) showOverview(map.current, locations.length ? locations : market.locations);
     }}>Show all pins</button>
   </>;
 }

@@ -7,7 +7,7 @@ Responsive marketing website and interactive CRM prototype for a future paid bus
 ## Current release
 
 - Responsive public landing page with a Liniqo map illustration
-- London discovery demo at `/explore` with tilted, flat and list views
+- London and Dhaka discovery demos at `/explore` and `/explore?city=dhaka` with tilted, flat and list views
 - Interactive dashboard with fictional sample businesses
 - Search/filter sample leads, view explainable sample scores and update pipeline stages in browser state
 - Editable, copyable outreach drafts (human-reviewed)
@@ -57,9 +57,9 @@ Avoid committing `.env` files or credentials. Real billing requires an eligible 
 
 See [implementation plan](docs/LEADATLAS_PLAN.md).
 
-## London discovery demo
+## London and Dhaka discovery demo
 
-The explorer lets freelancers and agencies try location-first research. Each location links to its Wikidata coordinates and any website-status evidence. Coverage is curated and lead suitability is unassessed. Green means the official website was reachable at the last check. Gold requires affirmative evidence that the business has no official website. Unchecked, inconclusive and unreachable cases stay unknown. The CRM uses a separate fictional dataset.
+The explorer lets freelancers and agencies try location-first research. Each location links to its public coordinate source and any website-status evidence. Coverage is curated and lead suitability is unassessed. Green means the official website was reachable at the last check. Gold requires affirmative evidence that the business has no official website. Unchecked, inconclusive and unreachable cases stay unknown. The CRM uses a separate fictional dataset.
 
 - MapLibre GL JS renders OpenFreeMap's Liberty style with 3D building extrusions at street zoom without a key. The renderer loads on the explorer only. The map opens flat for reduced-motion users, and the list remains usable without WebGL or a working basemap.
 - To change basemaps, set `NEXT_PUBLIC_MAP_STYLE_URL` to the HTTPS style URL on Render and rebuild. This setting is public. Choose a style with a fill-extrusion layer for 3D buildings. Keep the provider attribution and use a browser-restricted public token if the provider requires one.
@@ -68,7 +68,7 @@ The explorer lets freelancers and agencies try location-first research. Each loc
 
 ### Smoke checks
 
-1. Follow **Explore London**. Check that tiles and pins load. Select a pin and check its matching card.
+1. Follow **Explore London** and **Explore Dhaka**, and switch markets from the explorer. Check that tiles and pins load. Select a pin and check its matching card.
 2. Switch between 3D, 2D and List. Check that 3D buildings disappear in 2D and that website status filters match the pins and cards. Test category and name searches, clear an empty search and open a location source.
 3. Tab through controls at a narrow viewport. Check reduced motion and the list fallback with WebGL disabled.
 4. Open `/dashboard` and check the fictional CRM.
