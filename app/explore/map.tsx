@@ -3,7 +3,14 @@
 import { useEffect, useRef } from "react";
 import { LngLatBounds, Map, Marker, NavigationControl } from "maplibre-gl";
 import styles from "../discovery.module.css";
-import { locations as demoLocations, londonCenter, type Location } from "./locations";
+import { locations as demoLocations, londonCenter, websiteLabels, type Location } from "./locations";
+
+const streetZoom = 16;
+
+function showOverview(instance: Map, locations: Location[]) {
+  const bounds = locations.reduce((extent, location) => extent.extend(location.coordinates), new LngLatBounds());
+  instance.fitBounds(bounds, { padding: 55, maxZoom: 14, duration: 0 });
+}
 
 type Props = {
   locations: Location[];
@@ -30,7 +37,7 @@ export default function BusinessMap({ locations, selected, tilted, onSelect, onU
     try {
       instance = new Map({
         container: container.current,
-        style: process.env.NEXT_PUBLIC_MAP_STYLE_URL || "https://tiles.openfreemap.org/styles/positron",
+        style: process.env.NEXT_PUBLIC_MAP_STYLE_URL || "https://tiles.openfreemap.org/styles/liberty",
         center: londonCenter,
         zoom: 12.4,
         maxPitch: 60,
@@ -47,8 +54,7 @@ export default function BusinessMap({ locations, selected, tilted, onSelect, onU
     }
 
     map.current = instance;
-    const bounds = demoLocations.reduce((extent, location) => extent.extend(location.coordinates), new LngLatBounds());
-    instance.fitBounds(bounds, { padding: 55, maxZoom: 13, duration: 0 });
+    showOverview(instance, demoLocations);
     instance.touchZoomRotate.disableRotation();
     instance.addControl(new NavigationControl({ showCompass: false }), "top-right");
     const onContextLost = () => callbacks.current.onUnavailable();
@@ -83,7 +89,8 @@ export default function BusinessMap({ locations, selected, tilted, onSelect, onU
         button.type = "button";
         button.className = styles.marker;
         button.setAttribute("role", "button");
-        button.setAttribute("aria-label", `Select ${location.name}`);
+        button.dataset.website = location.website.status;
+        button.setAttribute("aria-label", `Select ${location.name}, ${websiteLabels[location.website.status]}`);
         button.addEventListener("click", () => callbacks.current.onSelect(location.id));
         marker = new Marker({ element: button }).setLngLat(location.coordinates).addTo(instance);
         currentMarkers.set(location.id, marker);
@@ -97,14 +104,30 @@ export default function BusinessMap({ locations, selected, tilted, onSelect, onU
     const instance = map.current;
     if (!instance) return;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    function updateBuildings() {
+      for (const layer of instance?.getStyle()?.layers ?? []) {
+        if (layer.type === "fill-extrusion") instance?.setLayoutProperty(layer.id, "visibility", tilted ? "visible" : "none");
+      }
+    }
+    updateBuildings();
+    instance.once("load", updateBuildings);
+
+    const zoom = instance.getZoom();
+    const openStreetView = tilted && zoom < streetZoom;
     instance.easeTo({
-      center: activeLocation?.coordinates ?? instance.getCenter(),
-      zoom: activeLocation ? Math.max(14, instance.getZoom()) : instance.getZoom(),
+      center: activeLocation?.coordinates ?? (openStreetView ? londonCenter : instance.getCenter()),
+      zoom: activeLocation || openStreetView ? Math.max(streetZoom, zoom) : zoom,
       pitch: tilted ? 52 : 0,
       bearing: tilted ? -12 : 0,
       duration: reducedMotion ? 0 : 450,
     });
+    return () => { instance.off("load", updateBuildings); };
   }, [activeLocation, tilted]);
 
-  return <div ref={container} className={styles.map} role="region" aria-label="Interactive map of London businesses" />;
+  return <>
+    <div ref={container} className={styles.map} role="region" aria-label="Interactive map of London businesses" />
+    <button className={styles.mapOverview} type="button" onClick={() => {
+      if (map.current) showOverview(map.current, locations.length ? locations : demoLocations);
+    }}>Show all pins</button>
+  </>;
 }

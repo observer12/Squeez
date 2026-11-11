@@ -58,10 +58,20 @@
 .pinIcon{flex:none;width:34px;height:34px;display:grid;place-items:center;border-radius:8px;background:#e5eedc;color:#34522b}
 .cards a{display:inline-flex;align-items:center;gap:4px;padding:10px 3px;text-decoration:underline;font-size:.85rem;font-weight:700}
 .empty button{border:1px solid #879b82;color:inherit;border-radius:6px;background:#fff;min-height:44px;padding-inline:12px}
-.marker{width:32px;height:32px;border:3px solid #fff;border-radius:50%;background:#294f35;box-shadow:0 2px 5px #13271972;display:grid;place-items:center}
-.marker::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent)}
-.marker[aria-pressed=true]{background:var(--accent);z-index:1;border-color:#294f35}
-.marker[aria-pressed=true]::after{background:#294f35}
+.mapOverview{position:absolute;top:10px;left:10px;z-index:2;min-height:38px;padding:6px 12px;border:1px solid #a1aca0;border-radius:6px;background:#fff;color:var(--dark);font-size:.85rem;font-weight:700}
+.legend{list-style:none;display:flex;flex-wrap:wrap;gap:10px 20px;margin:0 0 12px;padding:0;color:var(--muted);font-size:.85rem}
+.legend li,.websiteStatus{display:flex;align-items:center;gap:8px}
+.websiteStatus{margin:7px 3px 0;font-size:.83rem;font-weight:700}
+.statusDot{display:inline-block;flex:none;width:11px;height:11px;border:1px solid var(--pin-rim,#525c58);border-radius:50%;background:var(--pin-fill,#939e98);box-shadow:var(--pin-glow,none)}
+.evidence{padding-inline:3px}
+.evidence a{padding-inline:0}
+.evidence small{margin-top:0}
+.mapHint{font-size:.85rem;color:var(--muted);margin:0 0 12px}
+.shell [data-website=live]{--pin-fill:#23a65c;--pin-rim:#064b2a;--pin-core:#e3ffe9}
+.shell [data-website=none]{--pin-fill:#ffba29;--pin-rim:#7e4409;--pin-core:#fff3c9;--pin-glow:0 0 8px 2px #ffb81cd9,0 0 17px 4px #ff9d2670}
+.marker{width:32px;height:32px;border:3px solid #fff;border-radius:50%;background:var(--pin-fill,#939e98);box-shadow:var(--pin-glow,0 2px 5px #13271972);display:grid;place-items:center}
+.marker::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--pin-core,#f7f8f5)}
+.marker[aria-pressed=true]{z-index:1;border-color:var(--pin-rim,#525c58);outline:2px solid #fff}
 @media(max-width:760px){
   .header,.hero,.how,.footer,.explore{width:calc(100% - 32px)}
   .header{min-height:66px}

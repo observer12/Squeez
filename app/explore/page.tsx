@@ -13,7 +13,7 @@ export default function Explore() {
     <main className={styles.explore}>
       <p className={styles.kicker}>Discovery demo</p>
       <h1>Explore London</h1>
-      <p className={styles.intro}>Browse public business locations. Website status and lead suitability have not been assessed.</p>
+      <p className={styles.intro}>Browse a source-linked selection of London businesses and markets. Website labels reflect the last recorded check.</p>
       <Explorer />
     </main>
   </div>;

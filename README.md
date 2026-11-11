@@ -59,16 +59,16 @@ See [implementation plan](docs/LEADATLAS_PLAN.md).
 
 ## London discovery demo
 
-The explorer lets freelancers and agencies try location-first research. Each of the four public venues links to the Wikidata record used for its coordinates. Website status and lead suitability are unassessed. The CRM uses a separate fictional dataset.
+The explorer lets freelancers and agencies try location-first research. Each location links to its Wikidata coordinates and any website-status evidence. Coverage is curated and lead suitability is unassessed. Green means the official website was reachable at the last check. Gold requires affirmative evidence that the business has no official website. Unchecked, inconclusive and unreachable cases stay unknown. The CRM uses a separate fictional dataset.
 
-- MapLibre GL JS renders OpenFreeMap's Positron style without a key. The renderer loads on the explorer only. The map opens flat for reduced-motion users, and the list remains usable without WebGL or a working basemap.
-- To change basemaps, set `NEXT_PUBLIC_MAP_STYLE_URL` to the HTTPS style URL on Render and rebuild. This setting is public. Keep the provider attribution and use a browser-restricted public token if the provider requires one.
+- MapLibre GL JS renders OpenFreeMap's Liberty style with 3D building extrusions at street zoom without a key. The renderer loads on the explorer only. The map opens flat for reduced-motion users, and the list remains usable without WebGL or a working basemap.
+- To change basemaps, set `NEXT_PUBLIC_MAP_STYLE_URL` to the HTTPS style URL on Render and rebuild. This setting is public. Choose a style with a fill-extrusion layer for 3D buildings. Keep the provider attribution and use a browser-restricted public token if the provider requires one.
 - To connect real discovery, add a server-side provider adapter behind authentication and organization-scoped authorization. Keep provider secrets server-side and enforce quotas there. Return permitted fields, source links and provider-sourced coordinates. Skip map pins for locations without coordinates. Record the source and date of any website review, and keep inconclusive searches distinct from confirmed findings.
 - The landing uses Liniqo's City map with pin under its [asset license](https://liniqo.com/license/). Interface controls use Lucide.
 
 ### Smoke checks
 
 1. Follow **Explore London**. Check that tiles and pins load. Select a pin and check its matching card.
-2. Switch between Tilted, 2D and List. Test category and name searches, clear an empty search and open a location source.
+2. Switch between 3D, 2D and List. Check that 3D buildings disappear in 2D and that website status filters match the pins and cards. Test category and name searches, clear an empty search and open a location source.
 3. Tab through controls at a narrow viewport. Check reduced motion and the list fallback with WebGL disabled.
 4. Open `/dashboard` and check the fictional CRM.
