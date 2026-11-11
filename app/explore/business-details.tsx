@@ -1,48 +1,137 @@
-import { ArrowUpRight, Clock, Globe, MapPin, Phone, X } from "lucide-react";
-import type { RefObject } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
+import { ArrowUpRight, Clock, Globe, Mail, MapPin, Navigation, Phone } from "lucide-react";
 import styles from "../discovery.module.css";
 import { websiteLabels, type Location } from "./locations";
 
-export default function BusinessDetails({ location, heading, close }: {
-  location: Location;
-  heading: RefObject<HTMLHeadingElement | null>;
-  close: () => void;
+function webLink(value?: string) {
+  try {
+    if (!value) return;
+    const url = new URL(value);
+    if ((url.protocol === "https:" || url.protocol === "http:") && !url.username && !url.password) return url.href;
+  } catch {
+    return;
+  }
+}
+
+export default function Profile({ initial, city, id, marketName }: {
+  initial?: Location;
+  city: "dhaka" | "london";
+  id: string;
+  marketName: string;
 }) {
+  const [location, setLocation] = useState(initial);
+  const [loading, setLoading] = useState(!initial && Boolean(id));
+
+  useEffect(() => {
+    if (initial || !id) return;
+    const request = new AbortController();
+
+    async function loadLocation() {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem("squeez:selected-business") || "null") as { city: string; location: Location } | null;
+        if (saved?.city === city && saved.location?.id === id) {
+          setLocation(saved.location);
+          setLoading(false);
+          return;
+        }
+      } catch {
+        // Try the public listing source if browser storage is unavailable.
+      }
+
+      const endpoint = id.startsWith("osm-") ? `/api/discovery?city=${city}` : id.startsWith("tile-") && city === "dhaka" ? "/api/discovery/overview" : undefined;
+      try {
+        if (!endpoint) return;
+        const response = await fetch(endpoint, { signal: request.signal });
+        if (!response.ok) return;
+        const { locations } = await response.json() as { locations: Location[] };
+        if (!request.signal.aborted) setLocation(locations.find(place => place.id === id));
+      } catch {
+        // The map provides a way back to the original listing.
+      } finally {
+        if (!request.signal.aborted) setLoading(false);
+      }
+    }
+
+    void loadLocation();
+    return () => request.abort();
+  }, [city, id, initial]);
+
+  if (!location) return <section className={styles.profileCard} aria-live="polite">
+    <h1>{loading ? "Loading business details…" : "Business details unavailable"}</h1>
+    {!loading && <p>Return to the map and select the business again.</p>}
+  </section>;
+
   const { website } = location;
   const evidence = "url" in website ? website : undefined;
+  const evidenceUrl = webLink(evidence?.url);
+  const officialWebsite = website.status === "live" ? evidenceUrl : undefined;
+  const listedWebsite = webLink(location.listedWebsite);
+  const publicSource = webLink(location.source);
+  const contactSource = webLink(location.contactSource);
   const phoneNumber = location.phone?.replace(/[^\d+]/g, "");
-  return <aside className={styles.businessDetails} aria-labelledby="business-name" onKeyDown={event => {
-    if (event.key === "Escape") close();
-  }}>
-    <div className={styles.businessDetailsHeader}>
-      <div>
-        <h2 id="business-name" ref={heading} tabIndex={-1}>{location.name}</h2>
-        <p>{location.category}</p>
+  const tel = phoneNumber && /^\+?\d{5,18}$/.test(phoneNumber) ? `tel:${phoneNumber}` : undefined;
+  const email = location.email && /^[^\s@?&#]+@[^\s@?&#]+\.[^\s@?&#]+$/.test(location.email) ? location.email : undefined;
+  const socials = (location.socials ?? []).flatMap(({ platform, url }) => {
+    const safe = webLink(url);
+    return safe ? [{ platform, url: safe }] : [];
+  });
+  const [lon, lat] = location.coordinates;
+  const directions = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${lat},${lon}`)}`;
+  const contactActions = [
+    { label: "Call business", value: location.phone, url: tel, icon: Phone },
+    { label: "Send email", value: email, url: email ? `mailto:${email}` : undefined, icon: Mail },
+    { label: "Visit official website", url: officialWebsite, icon: Globe },
+    { label: "Open contact source", url: contactSource !== officialWebsite ? contactSource : undefined, icon: ArrowUpRight },
+    { label: "Get directions", value: location.address || location.area || marketName, url: directions, icon: Navigation },
+  ];
+
+  return <div className={styles.profileGrid}>
+    <section className={styles.profileCard} aria-labelledby="profile-title">
+      <div className={styles.profileIdentity}>
+        <span className={styles.profileGlyph}><MapPin size={24} aria-hidden="true" /></span>
+        <p>{location.category} · {marketName}</p>
+        <h1 id="profile-title">{location.name}</h1>
       </div>
-      <button type="button" aria-label="Close business details" onClick={close}><X size={18} aria-hidden="true" /></button>
+      <dl className={styles.profileFacts}>
+        <div><dt><MapPin size={17} aria-hidden="true" /> Location</dt><dd><a href={directions}>{location.address || location.area || marketName} <ArrowUpRight size={14} aria-hidden="true" /></a></dd></div>
+        <div><dt><Phone size={17} aria-hidden="true" /> Phone</dt><dd>{tel ? <a href={tel}>{location.phone}</a> : location.phone || "Unavailable"}</dd></div>
+        <div><dt><Mail size={17} aria-hidden="true" /> Email</dt><dd>{email ? <a href={`mailto:${email}`}>{email}</a> : "Unavailable"}</dd></div>
+        {location.hours && <div><dt><Clock size={17} aria-hidden="true" /> Listed hours</dt><dd>{location.hours}</dd></div>}
+        {(officialWebsite || listedWebsite) && <div><dt><Globe size={17} aria-hidden="true" /> Website</dt><dd><a href={officialWebsite || listedWebsite} rel="nofollow noreferrer">{new URL((officialWebsite || listedWebsite)!).hostname} <ArrowUpRight size={14} aria-hidden="true" /></a></dd></div>}
+      </dl>
+      <div className={styles.profileStatus} data-website={website.status}>
+        <span className={styles.statusDot} data-website={website.status} aria-hidden="true" />{websiteLabels[website.status]}
+      </div>
+      {evidence && <p className={styles.profileNote}>Checked <time dateTime={evidence.checkedOn}>{evidence.checkedOn}</time>.</p>}
+    </section>
+    <div className={styles.profileSections}>
+      <section className={styles.profileCard} aria-labelledby="contact-title">
+        <h2 id="contact-title">Contact and directions</h2>
+        <div className={styles.profileActions}>
+          {contactActions.map(({ label, value, url, icon: Icon }) => url && <a key={label} href={url}>
+            <span className={styles.profileActionIcon}><Icon size={20} aria-hidden="true" /></span><span><strong>{label}</strong>{value && <small>{value}</small>}</span>
+          </a>)}
+        </div>
+        {!tel && !email && <p className={styles.profileNote}>This listing has no public phone or email available.</p>}
+      </section>
+      {socials.length > 0 && <section className={styles.profileCard} aria-labelledby="social-title">
+        <h2 id="social-title">Social profiles</h2>
+        <div className={styles.profileLinks}>{socials.map(({ platform, url }) => <a key={platform} href={url} rel="nofollow noreferrer">{platform} <ArrowUpRight size={16} aria-hidden="true" /></a>)}</div>
+        <p className={styles.profileNote}>{website.status === "live" ? "Links published by the business." : "Community-listed profiles. Check them before contacting."}</p>
+      </section>}
+      <section className={styles.profileCard} aria-labelledby="source-title">
+        <h2 id="source-title">Listing sources</h2>
+        {website.status === "unlisted" && <p className={styles.profileNote}>The source does not list a website. Check that the business is still operating and whether it has an official site.</p>}
+        {website.status === "unknown" && <p className={styles.profileNote}>The available source does not establish the website status.</p>}
+        <div className={styles.profileLinks}>
+          {publicSource && <a href={publicSource}>Location record <ArrowUpRight size={16} aria-hidden="true" /></a>}
+          {contactSource && <a href={contactSource}>Contact record <ArrowUpRight size={16} aria-hidden="true" /></a>}
+          {evidenceUrl && website.status === "none" && <a href={evidenceUrl}>Website status evidence <ArrowUpRight size={16} aria-hidden="true" /></a>}
+          {listedWebsite && <a href={listedWebsite} rel="nofollow noreferrer">Listed website · unverified <ArrowUpRight size={16} aria-hidden="true" /></a>}
+        </div>
+      </section>
     </div>
-    <ul className={styles.businessFacts}>
-      <li><MapPin size={16} aria-hidden="true" /><span>{location.address || location.area || "Address unavailable"}</span></li>
-      {location.phone && <li><Phone size={16} aria-hidden="true" />{phoneNumber && /^\+?\d{5,18}$/.test(phoneNumber) ? <a href={`tel:${phoneNumber}`}>{location.phone}</a> : <span>{location.phone}</span>}</li>}
-      {location.hours && <li><Clock size={16} aria-hidden="true" /><span>{location.hours}</span></li>}
-    </ul>
-    <div className={styles.businessStatus} data-website={website.status}>
-      <span className={styles.statusDot} data-website={website.status} aria-hidden="true" />
-      {websiteLabels[website.status]}
-    </div>
-    {evidence && <small>Checked <time dateTime={evidence.checkedOn}>{evidence.checkedOn}</time></small>}
-    {website.status === "unlisted" && <small>The source does not list a website. Check that the business is still operating and whether it has an official site.</small>}
-    {website.status === "unknown" && !location.listedWebsite && <small>This source does not establish whether the business has a website.</small>}
-    <div className={styles.businessActions}>
-      {evidence && <a href={evidence.url}><Globe size={16} aria-hidden="true" />{website.status === "live" ? "Official website" : "Website status evidence"}</a>}
-      {location.listedWebsite && <a href={location.listedWebsite} rel="nofollow noreferrer"><Globe size={16} aria-hidden="true" />Listed website · unverified</a>}
-      <a href={location.source}>View location source <ArrowUpRight size={15} aria-hidden="true" /></a>
-    </div>
-    {Boolean(location.socials?.length) && <div className={styles.businessSocials}>
-      <small>{website.status === "live" ? "Social links from the official site" : "Community-listed social links"}</small>
-      <div className={styles.businessActions}>{location.socials?.map(({ platform, url }) =>
-        <a href={url} key={platform} rel="nofollow noreferrer">{platform} <ArrowUpRight size={14} aria-hidden="true" /></a>
-      )}</div>
-    </div>}
-  </aside>;
+  </div>;
 }

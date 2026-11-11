@@ -24,6 +24,8 @@ export type Location = {
   listedWebsite?: string;
   address?: string;
   phone?: string;
+  email?: string;
+  contactSource?: string;
   hours?: string;
   socials?: { platform: string; url: string }[];
 };
@@ -47,16 +49,16 @@ const dhakaLocations: Location[] = [
   { id: "bodhua-saj", name: "Bodhua Saj Beauty Parlor", area: "Mirpur 11", address: "20 1/1, Mirpur 11, Dhaka", category: "Beauty salon", coordinates: [90.37534, 23.81797], source: "https://mapcarta.com/N4322832714", website: { status: "unlisted" } },
   { id: "sayna", name: "Sayna Beauty Parlor", area: "Mirpur 11", address: "Mirpur 11, Dhaka", category: "Beauty salon", coordinates: [90.37526, 23.81811], source: "https://mapcarta.com/N4322833072", website: { status: "unlisted" } },
   { id: "tisha", name: "Tisha Beauty Parlor", area: "Mirpur 11", address: "Mirpur 11, Dhaka", category: "Beauty salon", coordinates: [90.37417, 23.81712], source: "https://mapcarta.com/N4331663851", website: { status: "unlisted" } },
-  { id: "jamuna", name: "Jamuna Future Park", area: "Kuril", category: "Shopping centre", coordinates: [90.424167, 23.813333], source: "https://commons.wikimedia.org/wiki/Category:Jamuna_Future_Park", website: liveWebsite("https://jamunafuturepark.com/") },
-  { id: "star-cineplex", name: "Star Cineplex · Bashundhara City", area: "Panthapath", category: "Cinema", coordinates: [90.39052, 23.7515], source: "https://mapcarta.com/N4267753293", website: liveWebsite("https://starcineplex.com/about"), socials: [
+  { id: "jamuna", name: "Jamuna Future Park", area: "Kuril", contactSource: "https://jamunafuturepark.com/index.php/contact", category: "Shopping centre", coordinates: [90.424167, 23.813333], source: "https://commons.wikimedia.org/wiki/Category:Jamuna_Future_Park", website: liveWebsite("https://jamunafuturepark.com/") },
+  { id: "star-cineplex", name: "Star Cineplex · Bashundhara City", area: "Panthapath", address: "Level 8, Bashundhara City Shopping Mall, Panthapath, Dhaka 1205", contactSource: "https://starcineplex.com/contact", category: "Cinema", coordinates: [90.39052, 23.7515], source: "https://mapcarta.com/N4267753293", website: liveWebsite("https://starcineplex.com/about"), socials: [
     { platform: "Facebook", url: "https://www.facebook.com/MYCINEPLEX" },
     { platform: "Instagram", url: "https://www.instagram.com/mystarcineplex/" },
     { platform: "YouTube", url: "https://www.youtube.com/@mySTARCineplex" },
     { platform: "TikTok", url: "https://www.tiktok.com/@starcineplex" },
   ] },
-  { id: "pan-pacific", name: "Pan Pacific Sonargaon Dhaka", area: "Karwan Bazar", category: "Hotel", coordinates: [90.3941, 23.7496], source: "https://commons.wikimedia.org/wiki/Category:Pan_Pacific_Sonargaon", website: liveWebsite("https://www.panpacific.com/en/hotels-and-resorts/pp-dhaka.html") },
-  { id: "intercontinental", name: "InterContinental Dhaka", area: "Shahbag", category: "Hotel", coordinates: [90.3965, 23.741], source: "https://en.wikipedia.org/wiki/InterContinental_Dhaka", website: liveWebsite("https://www.ihg.com/intercontinental/hotels/us/en/dhaka/dachb/hoteldetail") },
-  { id: "westin", name: "The Westin Dhaka", area: "Gulshan", category: "Hotel", coordinates: [90.4146, 23.7933], source: "https://en.wikipedia.org/wiki/The_Westin_Dhaka", website: liveWebsite("https://www.marriott.com/en-us/hotels/dacwi-the-westin-dhaka/overview/") },
+  { id: "pan-pacific", name: "Pan Pacific Sonargaon Dhaka", area: "Karwan Bazar", address: "107 Kazi Nazrul Islam Avenue, Dhaka 1215", phone: "+880 2 5502 8008", email: "enquiry.ppdac@panpacific.com", contactSource: "https://www.panpacific.com/en/hotels-and-resorts/pp-dhaka/the-hotel.html", category: "Hotel", coordinates: [90.3941, 23.7496], source: "https://commons.wikimedia.org/wiki/Category:Pan_Pacific_Sonargaon", website: liveWebsite("https://www.panpacific.com/en/hotels-and-resorts/pp-dhaka.html") },
+  { id: "intercontinental", name: "InterContinental Dhaka", area: "Shahbag", address: "1 Minto Road, Dhaka 1000", phone: "+880 2 55663030", email: "dhaka@intercontinental-dhaka.com", contactSource: "https://www.ihg.com/intercontinental/hotels/us/en/dhaka/dachb/hoteldetail", category: "Hotel", coordinates: [90.3965, 23.741], source: "https://en.wikipedia.org/wiki/InterContinental_Dhaka", website: liveWebsite("https://www.ihg.com/intercontinental/hotels/us/en/dhaka/dachb/hoteldetail") },
+  { id: "westin", name: "The Westin Dhaka", area: "Gulshan", address: "Plot 01, Road 45, Main Gulshan Avenue, Gulshan 2, Dhaka 1212", phone: "+880 9638 228811", contactSource: "https://www.marriott.com/en-us/hotels/dacwi-the-westin-dhaka/overview/", category: "Hotel", coordinates: [90.4146, 23.7933], source: "https://en.wikipedia.org/wiki/The_Westin_Dhaka", website: liveWebsite("https://www.marriott.com/en-us/hotels/dacwi-the-westin-dhaka/overview/") },
 ];
 
 export type Market = {

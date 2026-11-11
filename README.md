@@ -79,6 +79,8 @@ The explorer lets freelancers and agencies try location-first research. Each loc
 
 Scroll over the map to zoom and drag to pan. Use the map's zoom buttons or the List view as alternatives. Smoke-test the additional listings in both cities and confirm that their source links and website status remain visible in List view.
 
-Dhaka also loads named businesses from the visible map automatically at neighborhood zoom and above. Pan to refresh the mapped places. Select a pin or card to open its detail panel. When a full listing is available, the panel includes its public address, phone, hours, website and social links. A listing without a website field is marked separately from confirmed absence. Basemap-only records stay unknown because the tiles do not carry contact fields.
+Dhaka also loads named businesses from the visible map automatically at neighborhood zoom and above. Pan to refresh the mapped places. Select a pin or card to open its business profile. When a full listing is available, the profile includes its public address, phone, hours, website and social links. A listing without a website field is marked separately from confirmed absence. Basemap-only records stay unknown because the tiles do not carry contact fields.
 
 The Dhaka city overview automatically samples up to 300 named businesses from OpenFreeMap vector tiles, with results cached for a day. These pins stay available when zoomed out. Additional neighborhood pins appear as their tiles load. Pin diameters interpolate with zoom from 8 to 36 CSS pixels. Tile-only website status remains unknown.
+
+Selecting a business opens a dedicated profile. Public contact actions are available when the listing supplies them. Curated records load directly by URL, and a selected map listing is kept in the current browser session so its profile survives a refresh. No messaging is sent by Squeez.

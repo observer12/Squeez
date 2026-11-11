@@ -62,6 +62,7 @@ function readPlace(place: OsmPlace): Location[] {
     listedWebsite,
     address: address.slice(0, 200) || undefined,
     phone: (tags["contact:phone"] || tags.phone)?.slice(0, 80),
+    email: (tags["contact:email"] || tags.email)?.slice(0, 160),
     hours: tags.opening_hours?.slice(0, 200),
     socials,
   }];

@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { Layers3, List, Map as MapIcon, MapPin, Search } from "lucide-react";
-import BusinessDetails from "./business-details";
+import { useRouter } from "next/navigation";
 import styles from "../discovery.module.css";
 import { websiteLabels, type Location, type Market } from "./locations";
 
@@ -33,9 +33,7 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
   const [website, setWebsite] = useState<string>(initialWebsite);
-  const [selected, setSelected] = useState<Location>();
-  const detailHeading = useRef<HTMLHeadingElement>(null);
-  const trigger = useRef<HTMLElement | null>(null);
+  const router = useRouter();
   const [view, setView] = useState<"3d" | "2d" | "list">("3d");
   const [mapFailed, setMapFailed] = useState(false);
 
@@ -67,14 +65,14 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
   function selectLocation(id: string) {
     const location = locations.find(place => place.id === id);
     if (!location) return;
-    trigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    setSelected(location);
-    requestAnimationFrame(() => detailHeading.current?.focus());
-  }
-
-  function closeDetails() {
-    setSelected(undefined);
-    trigger.current?.focus();
+    const params = new URLSearchParams({ city: marketId, id });
+    if (website === "unlisted") params.set("website", "unlisted");
+    try {
+      sessionStorage.setItem("squeez:selected-business", JSON.stringify({ city: marketId, location }));
+    } catch {
+      // Curated and directory listings can still load by ID.
+    }
+    router.push(`/explore/business?${params}`);
   }
 
   function loadMapListings() {
@@ -106,7 +104,6 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
     (!website || location.website.status === website) &&
     terms.every(term => `${location.name} ${location.area} ${location.address ?? ""} ${location.category} ${city} ${country}`.toLowerCase().includes(term))
   );
-  const active = locations.find(location => location.id === selected?.id) ?? selected;
   const viewOptions = [{ id: "3d", label: "3D", Icon: Layers3 }, { id: "2d", label: "2D", Icon: MapIcon }, { id: "list", label: "List", Icon: List }] as const;
 
   return <>
@@ -157,17 +154,12 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
     {view === "3d" && <p className={styles.mapHint}>Scroll over the map to zoom. Drag to pan. 3D buildings appear at street zoom.</p>}
     {mapFailed && <p className={styles.notice} role="status">The interactive map is unavailable. You can still search and open every location below.</p>}
     <div className={view === "list" ? styles.listOnly : styles.explorerGrid}>
-      <div className={styles.mapColumn} hidden={view === "list" && !active}>
       {view !== "list" && <div className={styles.mapFrame}>
-        <BusinessMap readVisibleListings={readVisibleListings} market={market} locations={filtered} selected={active?.id} tilted={view === "3d"} onSelect={selectLocation} onVisibleListings={visible => setVisibleLocations(uniqueLocations(visible))} onUnavailable={() => {
+        <BusinessMap readVisibleListings={readVisibleListings} market={market} locations={filtered} tilted={view === "3d"} onSelect={selectLocation} onVisibleListings={visible => setVisibleLocations(uniqueLocations(visible))} onUnavailable={() => {
           setMapFailed(true);
           setView("list");
         }} />
       </div>}
-      {active && <div className={view === "list" ? undefined : styles.detailsOverlay}>
-        <BusinessDetails location={active} heading={detailHeading} close={closeDetails} />
-      </div>}
-      </div>
       <section className={styles.results} aria-labelledby="results-title">
         <h2 id="results-title">Locations</h2>
         <p role="status">{filtered.length} {filtered.length === 1 ? "location" : "locations"}</p>
@@ -175,8 +167,8 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
           <p>No locations match your filters.</p>
           <button type="button" onClick={() => { setQuery(""); setCategory(""); setWebsite(""); }}>Clear filters</button>
         </div> : <ul className={styles.cards}>
-          {filtered.map(location => <li key={location.id} className={active?.id === location.id ? styles.activeCard : undefined}>
-            <button type="button" aria-pressed={active?.id === location.id} onClick={() => selectLocation(location.id)}>
+          {filtered.map(location => <li key={location.id}>
+            <button type="button" onClick={() => selectLocation(location.id)}>
               <span className={styles.pinIcon}><MapPin size={19} aria-hidden="true" /></span>
               <span><strong>{location.name}</strong><small>{location.area} · {location.category}</small></span>
             </button>

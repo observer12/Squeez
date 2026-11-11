@@ -6,8 +6,6 @@ import { mapListing } from "./map-listings";
 import styles from "../discovery.module.css";
 import { websiteLabels, type Location, type Market } from "./locations";
 
-const streetZoom = 16;
-
 function showOverview(instance: Map, locations: Location[]) {
   const bounds = locations.reduce((extent, location) => extent.extend(location.coordinates), new LngLatBounds());
   instance.fitBounds(bounds, { padding: 55, maxZoom: 14, duration: 0 });
@@ -39,14 +37,13 @@ type Props = {
   readVisibleListings: RefObject<(() => Location[]) | null>;
   market: Market;
   locations: Location[];
-  selected?: string;
   tilted: boolean;
   onSelect: (id: string) => void;
   onVisibleListings?: (locations: Location[]) => void;
   onUnavailable: () => void;
 };
 
-export default function BusinessMap({ readVisibleListings, market, locations, selected, tilted, onSelect, onUnavailable, onVisibleListings }: Props) {
+export default function BusinessMap({ readVisibleListings, market, locations, tilted, onSelect, onUnavailable, onVisibleListings }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<Map | null>(null);
   const callbacks = useRef({ onSelect, onUnavailable, onVisibleListings });
@@ -137,16 +134,14 @@ export default function BusinessMap({ readVisibleListings, market, locations, se
         button.className = styles.marker;
         button.setAttribute("role", "button");
         button.dataset.website = location.website.status;
-        button.setAttribute("aria-label", `Select ${location.name}, ${websiteLabels[location.website.status]}`);
+        button.setAttribute("aria-label", `View ${location.name}, ${websiteLabels[location.website.status]}`);
         button.addEventListener("click", () => callbacks.current.onSelect(location.id));
         marker = new Marker({ element: button }).setLngLat(location.coordinates).addTo(instance);
         currentMarkers.set(location.id, marker);
       }
-      marker.getElement().setAttribute("aria-pressed", String(location.id === selected));
     }
-  }, [locations, selected]);
+  }, [locations]);
 
-  const activeLocation = locations.find(location => location.id === selected);
   useEffect(() => {
     const instance = map.current;
     if (!instance) return;
@@ -159,16 +154,13 @@ export default function BusinessMap({ readVisibleListings, market, locations, se
     updateBuildings();
     instance.once("load", updateBuildings);
 
-    const zoom = instance.getZoom();
     instance.easeTo({
-      center: activeLocation?.coordinates ?? instance.getCenter(),
-      zoom: activeLocation ? Math.max(streetZoom, zoom) : zoom,
       pitch: tilted ? 52 : 0,
       bearing: tilted ? -12 : 0,
       duration: reducedMotion ? 0 : 450,
     });
     return () => { instance.off("load", updateBuildings); };
-  }, [activeLocation, market, tilted]);
+  }, [tilted]);
 
   return <>
     <div ref={container} className={styles.map} role="region" aria-label={`Interactive map of ${market.city} businesses`} />
