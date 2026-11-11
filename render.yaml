@@ -1,0 +1,18 @@
+# Render Blueprint for the Squeez Next.js preview.
+# This deploys the public website and fictional CRM demo only.
+services:
+  - type: web
+    name: squeez-web
+    runtime: node
+    plan: starter
+    branch: main
+    region: singapore
+    buildCommand: npm install --no-audit --no-fund && npm run build
+    startCommand: npm run start -- -p $PORT -H 0.0.0.0
+    healthCheckPath: /
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
