@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ArrowUpRight, Clock, Globe, Mail, MapPin, Navigation, Phone } from "lucide-react";
+import { businessEmail, businessPhone, hasBusinessContact, phoneHref } from "./contact";
 import styles from "../discovery.module.css";
 import { websiteLabels, type Location } from "./locations";
 
@@ -31,7 +32,7 @@ export default function Profile({ initial, city, id, marketName }: {
     async function loadLocation() {
       try {
         const saved = JSON.parse(sessionStorage.getItem("squeez:selected-business") || "null") as { city: string; location: Location } | null;
-        if (saved?.city === city && saved.location?.id === id) {
+        if (saved?.city === city && saved.location?.id === id && hasBusinessContact(saved.location)) {
           setLocation(saved.location);
           setLoading(false);
           return;
@@ -40,13 +41,13 @@ export default function Profile({ initial, city, id, marketName }: {
         // Try the public listing source if browser storage is unavailable.
       }
 
-      const endpoint = id.startsWith("osm-") ? `/api/discovery?city=${city}` : id.startsWith("tile-") && city === "dhaka" ? "/api/discovery/overview" : undefined;
+      const endpoint = id.startsWith("osm-") ? `/api/discovery?city=${city}` : undefined;
       try {
         if (!endpoint) return;
         const response = await fetch(endpoint, { signal: request.signal });
         if (!response.ok) return;
         const { locations } = await response.json() as { locations: Location[] };
-        if (!request.signal.aborted) setLocation(locations.find(place => place.id === id));
+        if (!request.signal.aborted) setLocation(locations.find(place => place.id === id && hasBusinessContact(place)));
       } catch {
         // The map provides a way back to the original listing.
       } finally {
@@ -70,9 +71,9 @@ export default function Profile({ initial, city, id, marketName }: {
   const listedWebsite = webLink(location.listedWebsite);
   const publicSource = webLink(location.source);
   const contactSource = webLink(location.contactSource);
-  const phoneNumber = location.phone?.replace(/[^\d+]/g, "");
-  const tel = phoneNumber && /^\+?\d{5,18}$/.test(phoneNumber) ? `tel:${phoneNumber}` : undefined;
-  const email = location.email && /^[^\s@?&#]+@[^\s@?&#]+\.[^\s@?&#]+$/.test(location.email) ? location.email : undefined;
+  const phone = businessPhone(location.phone);
+  const tel = phone ? phoneHref(phone) : undefined;
+  const email = businessEmail(location.email);
   const socials = (location.socials ?? []).flatMap(({ platform, url }) => {
     const safe = webLink(url);
     return safe ? [{ platform, url: safe }] : [];
@@ -80,7 +81,7 @@ export default function Profile({ initial, city, id, marketName }: {
   const [lon, lat] = location.coordinates;
   const directions = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${lat},${lon}`)}`;
   const contactActions = [
-    { label: "Call business", value: location.phone, url: tel, icon: Phone },
+    { label: "Call business", value: phone, url: tel, icon: Phone },
     { label: "Send email", value: email, url: email ? `mailto:${email}` : undefined, icon: Mail },
     { label: "Visit official website", url: officialWebsite, icon: Globe },
     { label: "Open contact source", url: contactSource !== officialWebsite ? contactSource : undefined, icon: ArrowUpRight },
@@ -96,7 +97,7 @@ export default function Profile({ initial, city, id, marketName }: {
       </div>
       <dl className={styles.profileFacts}>
         <div><dt><MapPin size={17} aria-hidden="true" /> Location</dt><dd><a href={directions}>{location.address || location.area || marketName} <ArrowUpRight size={14} aria-hidden="true" /></a></dd></div>
-        <div><dt><Phone size={17} aria-hidden="true" /> Phone</dt><dd>{tel ? <a href={tel}>{location.phone}</a> : location.phone || "Unavailable"}</dd></div>
+        <div><dt><Phone size={17} aria-hidden="true" /> Phone</dt><dd>{tel ? <a href={tel}>{phone}</a> : "Unavailable"}</dd></div>
         <div><dt><Mail size={17} aria-hidden="true" /> Email</dt><dd>{email ? <a href={`mailto:${email}`}>{email}</a> : "Unavailable"}</dd></div>
         {location.hours && <div><dt><Clock size={17} aria-hidden="true" /> Listed hours</dt><dd>{location.hours}</dd></div>}
         {(officialWebsite || listedWebsite) && <div><dt><Globe size={17} aria-hidden="true" /> Website</dt><dd><a href={officialWebsite || listedWebsite} rel="nofollow noreferrer">{new URL((officialWebsite || listedWebsite)!).hostname} <ArrowUpRight size={14} aria-hidden="true" /></a></dd></div>}

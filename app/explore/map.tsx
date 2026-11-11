@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef, type RefObject } from "react";
+import { useEffect, useRef } from "react";
 import { LngLatBounds, Map, Marker, NavigationControl } from "maplibre-gl";
-import { mapListing } from "./map-listings";
 import styles from "../discovery.module.css";
 import { websiteLabels, type Location, type Market } from "./locations";
 
@@ -11,47 +10,23 @@ function showOverview(instance: Map, locations: Location[]) {
   instance.fitBounds(bounds, { padding: 55, maxZoom: 14, duration: 0 });
 }
 
-function visibleBusinesses(instance: Map, market: Market): Location[] {
-  if (instance.getZoom() < 13.5) return [];
-  const poiLayer = instance.getStyle()?.layers.find(layer => "source-layer" in layer && layer["source-layer"] === "poi");
-  if (!poiLayer || !("source" in poiLayer)) return [];
-
-  const features = instance.querySourceFeatures(poiLayer.source, { sourceLayer: "poi" });
-  const { clientWidth, clientHeight } = instance.getContainer();
-  const places = new globalThis.Map<string, Location>();
-
-  for (const feature of features) {
-    if (feature.geometry.type !== "Point") continue;
-    const listing = mapListing(feature.properties, feature.geometry.coordinates, market.city);
-    if (!listing) continue;
-    const { x, y } = instance.project(listing.coordinates);
-    if (x < 0 || y < 0 || x > clientWidth || y > clientHeight) continue;
-    places.set(listing.id, listing);
-    if (places.size >= 180) break;
-  }
-
-  return [...places.values()];
-}
-
 type Props = {
-  readVisibleListings: RefObject<(() => Location[]) | null>;
   market: Market;
   locations: Location[];
   tilted: boolean;
   onSelect: (id: string) => void;
-  onVisibleListings?: (locations: Location[]) => void;
   onUnavailable: () => void;
 };
 
-export default function BusinessMap({ readVisibleListings, market, locations, tilted, onSelect, onUnavailable, onVisibleListings }: Props) {
+export default function BusinessMap({ market, locations, tilted, onSelect, onUnavailable }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<Map | null>(null);
-  const callbacks = useRef({ onSelect, onUnavailable, onVisibleListings });
+  const callbacks = useRef({ onSelect, onUnavailable });
   const markers = useRef(new globalThis.Map<string, Marker>());
 
   useEffect(() => {
-    callbacks.current = { onSelect, onUnavailable, onVisibleListings };
-  }, [onSelect, onUnavailable, onVisibleListings]);
+    callbacks.current = { onSelect, onUnavailable };
+  }, [onSelect, onUnavailable]);
 
   useEffect(() => {
     if (!container.current) return;
@@ -77,7 +52,6 @@ export default function BusinessMap({ readVisibleListings, market, locations, ti
     }
 
     map.current = instance;
-    readVisibleListings.current = () => visibleBusinesses(instance, market);
     showOverview(instance, market.locations);
     const scalePins = () => {
       const zoom = instance.getZoom();
@@ -93,14 +67,6 @@ export default function BusinessMap({ readVisibleListings, market, locations, ti
     instance.addControl(new NavigationControl({ showCompass: false }), "top-right");
     const onContextLost = () => callbacks.current.onUnavailable();
     instance.on("webglcontextlost", onContextLost);
-    let previous = "";
-    if (market.city === "Dhaka") instance.on("idle", () => {
-      const visible = visibleBusinesses(instance, market);
-      const signature = visible.map(location => location.id).sort().join("\\n");
-      if (signature === previous) return;
-      previous = signature;
-      callbacks.current.onVisibleListings?.(visible);
-    });
     // Give the style and first viewport time to load on slow connections.
     const timeout = window.setTimeout(() => callbacks.current.onUnavailable(), 18000);
     instance.once("load", () => window.clearTimeout(timeout));
@@ -112,9 +78,8 @@ export default function BusinessMap({ readVisibleListings, market, locations, ti
       currentMarkers.clear();
       instance.remove();
       map.current = null;
-      readVisibleListings.current = null;
     };
-  }, [market, readVisibleListings]);
+  }, [market]);
 
   useEffect(() => {
     const instance = map.current;

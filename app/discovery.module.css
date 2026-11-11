@@ -131,3 +131,7 @@
 .profileLinks{display:flex;flex-wrap:wrap;gap:8px}
 .profileLinks a{padding:9px 10px;border:1px solid var(--stroke);border-radius:8px;font-size:.86rem;font-weight:700}
 @media(max-width:760px){.profilePage{width:calc(100% - 32px)}.profileGrid{grid-template-columns:minmax(0,1fr)}.profileCard{padding:16px}}
+
+.resultContacts{display:flex;flex-direction:column;align-items:flex-start;margin:2px 0 0 3px}
+.resultContacts a{overflow-wrap:anywhere;font-size:.78rem;padding-block:6px}
+.resultContacts svg{flex:none}

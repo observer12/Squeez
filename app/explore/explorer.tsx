@@ -1,9 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
-import { Layers3, List, Map as MapIcon, MapPin, Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Layers3, List, Map as MapIcon, Mail, MapPin, Phone, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { businessEmail, businessPhone, hasBusinessContact, phoneHref } from "./contact";
 import styles from "../discovery.module.css";
 import { websiteLabels, type Location, type Market } from "./locations";
 
@@ -22,13 +23,8 @@ function samePlace(first: Location, second: Location) {
 export default function Explorer({ market, marketId, initialWebsite }: { market: Market; marketId: string; initialWebsite: "" | "unlisted" }) {
   const { city, country } = market;
   const [communityLocations, setCommunityLocations] = useState<Location[]>([]);
-  const [discovery, setDiscovery] = useState<"idle" | "loading" | "ready" | "map" | "error">("idle");
-  const readVisibleListings = useRef<(() => Location[]) | null>(null);
-  const [visibleLocations, setVisibleLocations] = useState<Location[]>([]);
-  const [overviewLocations, setOverviewLocations] = useState<Location[]>([]);
-  const directoryLocations = [...market.locations, ...communityLocations];
-  const mappedLocations = new Map([...overviewLocations, ...visibleLocations].map(location => [location.id, location]));
-  const locations = [...directoryLocations, ...[...mappedLocations.values()].filter(location => !directoryLocations.some(known => samePlace(known, location)))];
+  const [discovery, setDiscovery] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const locations = [...market.locations, ...communityLocations].filter(hasBusinessContact);
   const categories = Array.from(new Set(locations.map(location => location.category))).sort();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
@@ -40,23 +36,6 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) setView("2d");
   }, []);
-
-  useEffect(() => {
-    if (marketId !== "dhaka") return;
-    const request = new AbortController();
-    async function loadOverview() {
-      try {
-        const response = await fetch("/api/discovery/overview", { signal: request.signal });
-        if (!response.ok) return;
-        const { locations } = await response.json() as { locations: Location[] };
-        if (!request.signal.aborted) setOverviewLocations(locations);
-      } catch {
-        // Street-level map tiles and the curated listings remain available.
-      }
-    }
-    void loadOverview();
-    return () => request.abort();
-  }, [marketId]);
 
   function uniqueLocations(incoming: Location[]) {
     return incoming.filter(place => !market.locations.some(known => samePlace(known, place)));
@@ -75,26 +54,16 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
     router.push(`/explore/business?${params}`);
   }
 
-  function loadMapListings() {
-    const visible = readVisibleListings.current?.() ?? [];
-    if (!visible.length) {
-      setDiscovery("error");
-      return;
-    }
-    setVisibleLocations(uniqueLocations(visible));
-    setDiscovery("map");
-  }
-
   async function loadCommunityLocations() {
     setDiscovery("loading");
     try {
       const response = await fetch(`/api/discovery?city=${encodeURIComponent(marketId)}`);
       if (!response.ok) throw new Error("Listings unavailable");
       const { locations: incoming } = await response.json() as { locations: Location[] };
-      setCommunityLocations(uniqueLocations(incoming));
+      setCommunityLocations(uniqueLocations(incoming.filter(hasBusinessContact)));
       setDiscovery("ready");
     } catch {
-      loadMapListings();
+      setDiscovery("error");
     }
   }
 
@@ -113,18 +82,14 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
         setCategory("");
         setQuery("");
       }}>No website listed</button>}
-      {(discovery === "idle" || discovery === "loading" || discovery === "error" || discovery === "map") &&
+      {(discovery === "idle" || discovery === "loading" || discovery === "error") &&
         <button type="button" disabled={discovery === "loading"} onClick={loadCommunityLocations}>
-          {discovery === "loading" ? "Loading businesses…" : discovery === "map" ? "Retry contact links" : discovery === "error" ? "Retry OpenStreetMap listings" : "Load more businesses"}
+          {discovery === "loading" ? "Loading businesses…" : discovery === "error" ? "Retry OpenStreetMap listings" : "Load more businesses"}
         </button>}
-      {discovery !== "loading" && discovery !== "ready" && view !== "list" && !mapFailed &&
-        <button type="button" onClick={loadMapListings}>Search visible map</button>}
       <p role="status">
-        {discovery === "ready" || discovery === "map" ? `${discovery === "map" ? visibleLocations.length : communityLocations.length} additional listings from ` : "Additional listings come from "}
+        {discovery === "ready" ? `${communityLocations.length} additional businesses with email and phone from ` : "Additional listings are sourced from "}
         <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a>. Coverage and contact details vary.
-        {marketId === "dhaka" && " Dhaka businesses appear at the city overview, with more pins as you explore each area."}
-        {discovery === "map" && " Contact details depend on the available source."}
-        {discovery === "error" && " Listings are unavailable here. Zoom in and search the visible map."}
+        {discovery === "error" && " The directory feed is unavailable. The listed businesses still have public contact details."}
       </p>
     </div>
     <div className={styles.toolbar}>
@@ -155,7 +120,7 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
     {mapFailed && <p className={styles.notice} role="status">The interactive map is unavailable. You can still search and open every location below.</p>}
     <div className={view === "list" ? styles.listOnly : styles.explorerGrid}>
       {view !== "list" && <div className={styles.mapFrame}>
-        <BusinessMap readVisibleListings={readVisibleListings} market={market} locations={filtered} tilted={view === "3d"} onSelect={selectLocation} onVisibleListings={visible => setVisibleLocations(uniqueLocations(visible))} onUnavailable={() => {
+        <BusinessMap market={market} locations={filtered} tilted={view === "3d"} onSelect={selectLocation} onUnavailable={() => {
           setMapFailed(true);
           setView("list");
         }} />
@@ -164,10 +129,13 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
         <h2 id="results-title">Locations</h2>
         <p role="status">{filtered.length} {filtered.length === 1 ? "location" : "locations"}</p>
         {filtered.length === 0 ? <div className={styles.empty}>
-          <p>No locations match your filters.</p>
+          <p>No businesses with both public contact details match your filters.</p>
           <button type="button" onClick={() => { setQuery(""); setCategory(""); setWebsite(""); }}>Clear filters</button>
         </div> : <ul className={styles.cards}>
-          {filtered.map(location => <li key={location.id}>
+          {filtered.map(location => {
+            const phone = businessPhone(location.phone);
+            const email = businessEmail(location.email);
+            return <li key={location.id}>
             <button type="button" onClick={() => selectLocation(location.id)}>
               <span className={styles.pinIcon}><MapPin size={19} aria-hidden="true" /></span>
               <span><strong>{location.name}</strong><small>{location.area} · {location.category}</small></span>
@@ -176,7 +144,11 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
               <span className={styles.statusDot} data-website={location.website.status} aria-hidden="true" />
               {websiteLabels[location.website.status]}
             </div>
-          </li>)}
+            {phone && email && <div className={styles.resultContacts}>
+              <a href={phoneHref(phone)} aria-label={`Call ${location.name}`}><Phone size={15} aria-hidden="true" /> {phone}</a>
+              <a href={`mailto:${email}`} aria-label={`Email ${location.name}`}><Mail size={15} aria-hidden="true" /> {email}</a>
+            </div>}
+          </li>})}
         </ul>}
       </section>
     </div>

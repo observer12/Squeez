@@ -1,3 +1,4 @@
+import { businessEmail, businessPhone } from "../../explore/contact";
 import type { Location } from "../../explore/locations";
 
 const bounds = {
@@ -48,6 +49,10 @@ function readPlace(place: OsmPlace): Location[] {
     return url ? [{ platform, url }] : [];
   });
 
+  const phone = businessPhone(tags["contact:phone"]) ?? businessPhone(tags.phone);
+  const email = businessEmail(tags["contact:email"]) ?? businessEmail(tags.email);
+  if (!phone || !email) return [];
+
   const listedWebsite = publicLink(tags["contact:website"]) ?? publicLink(tags.website);
   const address = [tags["addr:housenumber"], tags["addr:street"], tags["addr:suburb"], tags["addr:city"]].filter(Boolean).join(", ");
 
@@ -61,8 +66,8 @@ function readPlace(place: OsmPlace): Location[] {
     website: { status: listedWebsite ? "unknown" : "unlisted" },
     listedWebsite,
     address: address.slice(0, 200) || undefined,
-    phone: (tags["contact:phone"] || tags.phone)?.slice(0, 80),
-    email: (tags["contact:email"] || tags.email)?.slice(0, 160),
+    phone,
+    email,
     hours: tags.opening_hours?.slice(0, 200),
     socials,
   }];
@@ -75,7 +80,7 @@ async function fetchPlaces(city: City) {
     '["amenity"~"^(restaurant|cafe|fast_food|bar|pub|bank|pharmacy|cinema|marketplace)$"]',
     '["tourism"~"^(hotel|guest_house|hostel)$"]',
   ];
-  const selectors = businesses.map(tags => `nwr["name"]${tags}(${box});`).join("");
+  const selectors = businesses.map(tags => `nwr["name"][~"^(contact:)?phone$"~"."][~"^(contact:)?email$"~"."]${tags}(${box});`).join("");
   const query = `[out:json][timeout:6][maxsize:33554432];(${selectors});out center 180;`;
   const endpoints = ["https://overpass-api.de/api/interpreter", "https://overpass.private.coffee/api/interpreter"];
   for (const endpoint of endpoints) {
