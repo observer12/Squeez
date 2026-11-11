@@ -46,6 +46,28 @@ const londonLocations: Location[] = [
 ];
 
 const dhakaLocations: Location[] = [
+  {
+    id: "aura-bailey-road", name: "AURA Beauty Lounge", area: "Bailey Road",
+    address: "2nd Floor, Gold Palace, 3 New Bailey Road, Dhaka 1000", category: "Beauty salon",
+    coordinates: [90.41004, 23.74197], source: "https://mapcarta.com/N4117103292",
+    contactSource: "https://aurabd.com/book-appointment/", phone: "+880 1799 255555",
+    email: "aurabeautybd@gmail.com", website: liveWebsite("https://aurabd.com/book-appointment/"),
+  },
+  {
+    id: "persona-banani", name: "Persona · Banani", area: "Banani",
+    address: "76/A Road 11, Banani, Dhaka 1212", category: "Beauty salon",
+    coordinates: [90.41023, 23.79024], source: "https://mapcarta.com/N3732380032",
+    contactSource: "https://persona.com.bd/contacts/", phone: "+880 1847 067969",
+    email: "info@persona.com.bd", website: liveWebsite("https://persona.com.bd/contacts/"),
+  },
+  {
+    id: "bistro-e", name: "Bistro E", area: "Gulshan 2",
+    address: "Bay’s Edgewater, 1st Floor, NE (N) 12 North Avenue, Gulshan 2, Dhaka 1212",
+    category: "Restaurant", coordinates: [90.41753, 23.79608],
+    source: "https://mapcarta.com/W403791809", contactSource: "https://bistro-e.com/",
+    phone: "+880 1755 693707", email: "reservations@bistro-e.com",
+    website: liveWebsite("https://bistro-e.com/"),
+  },
   { id: "prive-salon", name: "Privé Salon and Spa", area: "Gulshan 2", address: "House 23B, Road 102, Gulshan 2, Dhaka 1212", category: "Beauty salon", coordinates: [90.4191377, 23.7938612], source: "https://bd.near-place.com/prive-salon-and-spa-ltd-by-nahila-hedayet-gulshan-2-road-102-house-23b-dhaka", contactSource: "https://www.cybo.com/BD-biz/priv%C3%A9-salon-and-spa-ltd-by-nahila", phone: "+880 1926 649646", email: "info.prive.salon@gmail.com", website: { status: "unlisted" } },
   { id: "lakeshore-gulshan", name: "Lakeshore Hotel Gulshan", area: "Gulshan 2", address: "House 46, Road 41, Gulshan 2, Dhaka 1212", category: "Hotel", coordinates: [90.41243, 23.79021], source: "https://mapcarta.com/32927958", contactSource: "https://lakeshorehotel.com.bd/maps-directions/", phone: "+880 9610 111222", email: "info@lakeshorehotel.com.bd", website: liveWebsite("https://lakeshorehotel.com.bd/maps-directions/") },
   { id: "dhaka-regency", name: "Dhaka Regency Hotel & Resort", area: "Nikunja 2", address: "Airport Road, Nikunja 2, Dhaka", category: "Hotel", coordinates: [90.41944, 23.82953], source: "https://bd.near-place.com/dhaka-regency-hotel-resort-airport-road-nikunja-2-dhaka", contactSource: "https://dhakaregency.com/", phone: "+880 1713 332651", email: "info@dhakaregency.com", website: liveWebsite("https://dhakaregency.com/") },
