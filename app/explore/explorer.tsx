@@ -108,7 +108,7 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
 
   return <>
     <div className={styles.discoveryAction}>
-      {marketId !== "london" && <button type="button" aria-pressed={website === "unlisted"} onClick={() => {
+      {<button type="button" aria-pressed={website === "unlisted"} onClick={() => {
         setWebsite(website === "unlisted" ? "" : "unlisted");
         setCategory("");
         setQuery("");
