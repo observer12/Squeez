@@ -26,7 +26,7 @@ const platforms = {
   linkedin: "LinkedIn",
 } as const;
 
-const cache = new Map<City, { expires: number; results: Promise<Location[]> }>();
+const cache = new Map<string, { expires: number; results: Promise<Location[]> }>();
 
 function publicLink(value?: string): string | undefined {
   if (!value || value.length > 1024) return;
@@ -75,9 +75,9 @@ function readPlace(place: OsmPlace): Location[] {
   }];
 }
 
-async function fetchPlaces(city: City) {
+async function fetchPlaces(city: City, category: string) {
   const region = city === "bangladesh" ? "(area.bd)" : `(${bounds[city]})`;
-  const selectors = directorySelectors().map(tags => `nwr["name"]${tags}${region};`).join("");
+  const selectors = directorySelectors(category || undefined).map(tags => `nwr["name"]${tags}${region};`).join("");
   const area = city === "bangladesh" ? 'area["ISO3166-1"="BD"]["admin_level"="2"]->.bd;' : "";
   const timeout = city === "bangladesh" ? 18 : 25;
   const query = `[out:json][timeout:${timeout}][maxsize:67108864];${area}(${selectors});out center 180;`;
@@ -112,9 +112,12 @@ export async function GET(request: Request) {
   if (city !== "dhaka" && city !== "london" && city !== "bangladesh") return Response.json({ error: "Unknown market" }, { status: 400 });
 
   const id = searchParams.get("id");
+  const category = searchParams.get("category") ?? "";
+  if (category && directorySelectors(category).length === 0) return Response.json({ error: "Unknown category" }, { status: 400 });
   if (city === "bangladesh") {
-    const snapshot = await readCountrySnapshot();
-    if (snapshot.length) {
+    const allRecords = await readCountrySnapshot();
+    const snapshot = category ? allRecords.filter(place => place.category === category) : allRecords;
+    if (allRecords.length) {
       if (id) return Response.json({ locations: snapshot.filter(place => place.id === id) });
       const requested = Number(searchParams.get("offset"));
       const offset = Number.isSafeInteger(requested) && requested > 0 ? requested : 0;
@@ -126,15 +129,16 @@ export async function GET(request: Request) {
     }
   }
 
-  let entry = cache.get(city);
+  const cacheKey = `${city}:${category}`;
+  let entry = cache.get(cacheKey);
   if (!entry || entry.expires <= Date.now()) {
-    const results: Promise<Location[]> = fetchPlaces(city).catch(error => {
-      const failed = cache.get(city);
+    const results: Promise<Location[]> = fetchPlaces(city, category).catch(error => {
+      const failed = cache.get(cacheKey);
       if (failed?.results === results) failed.expires = Date.now() + 30_000;
       throw error;
     });
     entry = { results, expires: Date.now() + 30 * 60_000 };
-    cache.set(city, entry);
+    cache.set(cacheKey, entry);
   }
 
   try {
