@@ -61,9 +61,11 @@ export function directoryCategory(tags: Record<string, string>) {
   return definitions.find(([, [key, ...values]]) => values.includes(tags[key]))?.[0];
 }
 
-export function directorySelectors() {
+export function directorySelectors(category?: string) {
+  const matches = category ? definitions.filter(([label]) => label === category) : definitions;
+  if (category && matches.length === 0) return [];
   const keys = new Map<string, string[]>();
-  for (const [, [key, ...values]] of definitions) {
+  for (const [, [key, ...values]] of matches) {
     keys.set(key, [...(keys.get(key) ?? []), ...values]);
   }
   return [...keys].map(([key, values]) => `["${key}"~"^(${values.join("|")})$"]`);
