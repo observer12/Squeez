@@ -47,8 +47,10 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
     const controller = new AbortController();
     async function loadInitial() {
       setDiscovery("loading");
+      setCommunityLocations([]);
+      setNextOffset(0);
       try {
-        const response = await fetch(`/api/discovery?city=${encodeURIComponent(marketId)}&offset=0`, { signal: controller.signal });
+        const response = await fetch(`/api/discovery?city=${encodeURIComponent(marketId)}&category=${encodeURIComponent(category)}&offset=0`, { signal: controller.signal });
         if (!response.ok) throw new Error("Directory request failed");
         const data = await response.json() as { locations: Location[]; nextOffset?: number | null };
         if (controller.signal.aborted) return;
@@ -61,7 +63,7 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
     }
     void loadInitial();
     return () => controller.abort();
-  }, [marketId]);
+  }, [marketId, category]);
 
   function uniqueLocations(incoming: Location[]) {
     return incoming.filter(place => !market.locations.some(known => samePlace(known, place)));
@@ -84,7 +86,7 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
     if (nextOffset === null && discovery !== "error") return;
     setDiscovery("loading");
     try {
-      const response = await fetch(`/api/discovery?city=${encodeURIComponent(marketId)}&offset=${nextOffset ?? 0}`);
+      const response = await fetch(`/api/discovery?city=${encodeURIComponent(marketId)}&category=${encodeURIComponent(category)}&offset=${nextOffset ?? 0}`);
       if (!response.ok) throw new Error("Listings unavailable");
       const { locations: incoming, nextOffset: next } = await response.json() as { locations: Location[]; nextOffset?: number | null };
       setCommunityLocations(previous => [...previous, ...uniqueLocations(incoming)].filter((place, i, all) => all.findIndex(other => other.id === place.id) === i));
