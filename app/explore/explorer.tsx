@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { Layers3, List, Map as MapIcon, Mail, MapPin, Phone, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { businessEmail, businessPhone, hasBusinessContact, phoneHref } from "./contact";
+import { businessEmail, businessPhone, phoneHref } from "./contact";
 import { categoryGroups } from "./categories";
 import styles from "../discovery.module.css";
 import { websiteLabels, type Location, type Market } from "./locations";
@@ -26,7 +26,7 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
   const [communityLocations, setCommunityLocations] = useState<Location[]>([]);
   const [discovery, setDiscovery] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [nextOffset, setNextOffset] = useState<number | null>(0);
-  const locations = [...market.locations, ...communityLocations].filter(hasBusinessContact);
+  const locations = [...market.locations, ...communityLocations].filter((place, i, all) => all.findIndex(other => other.id === place.id) === i);
   const categoryCounts = new Map<string, number>();
   for (const location of locations) categoryCounts.set(location.category, (categoryCounts.get(location.category) ?? 0) + 1);
   const included = new Set(categoryGroups.flatMap(group => Object.keys(group.entries)));
@@ -34,6 +34,7 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
   const [website, setWebsite] = useState<string>(initialWebsite);
+  const [contactFilter, setContactFilter] = useState("all");
   const router = useRouter();
   const [view, setView] = useState<"3d" | "2d" | "list">("3d");
   const [mapFailed, setMapFailed] = useState(false);
@@ -41,6 +42,26 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) setView("2d");
   }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    async function loadInitial() {
+      setDiscovery("loading");
+      try {
+        const response = await fetch(`/api/discovery?city=${encodeURIComponent(marketId)}&offset=0`, { signal: controller.signal });
+        if (!response.ok) throw new Error("Directory request failed");
+        const data = await response.json() as { locations: Location[]; nextOffset?: number | null };
+        if (controller.signal.aborted) return;
+        setCommunityLocations(data.locations);
+        setNextOffset(data.nextOffset ?? null);
+        setDiscovery("ready");
+      } catch {
+        if (!controller.signal.aborted) setDiscovery("error");
+      }
+    }
+    void loadInitial();
+    return () => controller.abort();
+  }, [marketId]);
 
   function uniqueLocations(incoming: Location[]) {
     return incoming.filter(place => !market.locations.some(known => samePlace(known, place)));
@@ -60,12 +81,13 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
   }
 
   async function loadCommunityLocations() {
+    if (nextOffset === null && discovery !== "error") return;
     setDiscovery("loading");
     try {
       const response = await fetch(`/api/discovery?city=${encodeURIComponent(marketId)}&offset=${nextOffset ?? 0}`);
       if (!response.ok) throw new Error("Listings unavailable");
       const { locations: incoming, nextOffset: next } = await response.json() as { locations: Location[]; nextOffset?: number | null };
-      setCommunityLocations(previous => [...previous, ...uniqueLocations(incoming.filter(hasBusinessContact))]);
+      setCommunityLocations(previous => [...previous, ...uniqueLocations(incoming)].filter((place, i, all) => all.findIndex(other => other.id === place.id) === i));
       setNextOffset(next ?? null);
       setDiscovery("ready");
     } catch {
@@ -77,6 +99,7 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
   const filtered = locations.filter(location =>
     (!category || location.category === category) &&
     (!website || location.website.status === website) &&
+    (contactFilter === "all" || (contactFilter === "phone" && Boolean(businessPhone(location.phone))) || (contactFilter === "email" && Boolean(businessEmail(location.email))) || (contactFilter === "both" && Boolean(businessPhone(location.phone) && businessEmail(location.email)))) &&
     terms.every(term => `${location.name} ${location.area} ${location.address ?? ""} ${location.category} ${city} ${country}`.toLowerCase().includes(term))
   );
   const viewOptions = [{ id: "3d", label: "3D", Icon: Layers3 }, { id: "2d", label: "2D", Icon: MapIcon }, { id: "list", label: "List", Icon: List }] as const;
@@ -89,13 +112,13 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
         setQuery("");
       }}>No website listed</button>}
       {(discovery === "idle" || discovery === "loading" || discovery === "error" || (discovery === "ready" && nextOffset !== null)) &&
-        <button type="button" disabled={discovery === "loading"} onClick={loadCommunityLocations}>
-          {discovery === "loading" ? "Loading businesses…" : discovery === "error" ? "Retry OpenStreetMap listings" : marketId === "bangladesh" ? "Load Bangladesh listings" : "Load more businesses"}
+        <button type="button" disabled={discovery === "loading"} onClick={() => void loadCommunityLocations()}>
+          {discovery === "loading" ? "Loading businesses…" : discovery === "error" ? "Retry OpenStreetMap listings" : marketId === "bangladesh" ? "Load more Bangladesh listings" : "Reload listings"}
         </button>}
       <p role="status">
-        {discovery === "ready" ? `${communityLocations.length} additional businesses with email and phone from ` : "Additional listings are sourced from "}
+        {discovery === "ready" ? `${communityLocations.length} directory businesses from ` : "Additional listings are sourced from "}
         <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a>. Coverage and contact details vary.
-        {discovery === "error" && " The directory feed is unavailable. The listed businesses still have public contact details."}
+        {discovery === "error" && " The directory feed could not load. Try again; existing results remain visible."}
       </p>
     </div>
     <div className={styles.toolbar}>
@@ -114,6 +137,12 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
       <select aria-label="Website status" value={website} onChange={event => setWebsite(event.target.value)}>
         <option value="">Any website status</option>
         {Object.entries(websiteLabels).map(([status, label]) => <option key={status} value={status}>{label}</option>)}
+      </select>
+      <select aria-label="Contact availability" value={contactFilter} onChange={event => setContactFilter(event.target.value)}>
+        <option value="all">Any contact availability</option>
+        <option value="phone">Has phone</option>
+        <option value="email">Has email</option>
+        <option value="both">Has phone and email</option>
       </select>
       <div className={styles.viewOptions} role="group" aria-label="Map or list view">
         {viewOptions.map(({id, label, Icon}) => <button type="button" key={id} aria-pressed={view === id} disabled={mapFailed && id !== "list"} onClick={() => setView(id)}>
@@ -139,8 +168,8 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
         <h2 id="results-title">Locations</h2>
         <p role="status">{filtered.length} {filtered.length === 1 ? "location" : "locations"}</p>
         {filtered.length === 0 ? <div className={styles.empty}>
-          <p>No loaded businesses with both public contact details match these filters.</p>
-          <button type="button" onClick={() => { setQuery(""); setCategory(""); setWebsite(""); }}>Clear filters</button>
+          <p>No matching businesses were found in the currently loaded data. Broaden filters or try another area.</p>
+          <button type="button" onClick={() => { setQuery(""); setCategory(""); setWebsite(""); setContactFilter("all"); }}>Clear filters</button>
         </div> : <ul className={styles.cards}>
           {filtered.map(location => {
             const phone = businessPhone(location.phone);
@@ -154,10 +183,10 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
               <span className={styles.statusDot} data-website={location.website.status} aria-hidden="true" />
               {websiteLabels[location.website.status]}
             </div>
-            {phone && email && <div className={styles.resultContacts}>
-              <a href={phoneHref(phone)} aria-label={`Call ${location.name}`}><Phone size={15} aria-hidden="true" /> {phone}</a>
-              <a href={`mailto:${email}`} aria-label={`Email ${location.name}`}><Mail size={15} aria-hidden="true" /> {email}</a>
-            </div>}
+            {(phone || email) ? <div className={styles.resultContacts}>
+              {phone && <a href={phoneHref(phone)} aria-label={`Call ${location.name}`}><Phone size={15} aria-hidden="true" /> {phone}</a>}
+              {email && <a href={`mailto:${email}`} aria-label={`Email ${location.name}`}><Mail size={15} aria-hidden="true" /> {email}</a>}
+            </div> : <p style={{fontSize:12,color:"#657168",margin:"8px 0"}}>No public contact listed — view source for more details.</p>}
           </li>})}
         </ul>}
       </section>
