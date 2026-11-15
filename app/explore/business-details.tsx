@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ArrowUpRight, Clock, Globe, Mail, MapPin, Navigation, Phone } from "lucide-react";
-import { businessEmail, businessPhone, hasBusinessContact, phoneHref } from "./contact";
+import { businessEmail, businessPhone, phoneHref } from "./contact";
 import styles from "../discovery.module.css";
 import { websiteLabels, type Location, type MarketId } from "./locations";
 
@@ -34,7 +34,7 @@ export default function Profile({ initial, city, id, marketName }: {
     async function loadLocation() {
       try {
         const saved = JSON.parse(sessionStorage.getItem("squeez:selected-business") || "null") as { city: string; location: Location } | null;
-        if (saved?.city === city && saved.location?.id === id && hasBusinessContact(saved.location)) {
+        if (saved?.city === city && saved.location?.id === id) {
           setLocation(saved.location);
           setLoading(false);
           return;
@@ -49,7 +49,7 @@ export default function Profile({ initial, city, id, marketName }: {
         const response = await fetch(endpoint, { signal: request.signal });
         if (!response.ok) return;
         const { locations } = await response.json() as { locations: Location[] };
-        if (!request.signal.aborted) setLocation(locations.find(place => place.id === id && hasBusinessContact(place)));
+        if (!request.signal.aborted) setLocation(locations.find(place => place.id === id));
       } catch {
         // The map provides a way back to the original listing.
       } finally {
