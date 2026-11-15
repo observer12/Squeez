@@ -110,8 +110,6 @@ export default function Explorer({ market, marketId, initialWebsite }: { market:
     <div className={styles.discoveryAction}>
       {<button type="button" aria-pressed={website === "unlisted"} onClick={() => {
         setWebsite(website === "unlisted" ? "" : "unlisted");
-        setCategory("");
-        setQuery("");
       }}>No website listed</button>}
       {(discovery === "idle" || discovery === "loading" || discovery === "error" || (discovery === "ready" && nextOffset !== null)) &&
         <button type="button" disabled={discovery === "loading"} onClick={() => void loadCommunityLocations()}>
