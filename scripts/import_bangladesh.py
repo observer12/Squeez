@@ -1,4 +1,4 @@
-"""Export named Bangladeshi OSM businesses with public phone and email tags."""
+"""Export named Bangladeshi OSM businesses with optional public contacts."""
 
 import hashlib
 import json
@@ -50,8 +50,6 @@ class BusinessExtract(osmium.SimpleHandler):
             return None
         phone = first_valid(tags.get("contact:phone"), valid_phone) or first_valid(tags.get("phone"), valid_phone)
         email = first_valid(tags.get("contact:email"), valid_email) or first_valid(tags.get("email"), valid_email)
-        if not phone or not email:
-            return None
         category = next((self.categories[(key, tags.get(key))] for key in self.category_keys
                          if (key, tags.get(key)) in self.categories), None)
         if not category:
@@ -67,10 +65,14 @@ class BusinessExtract(osmium.SimpleHandler):
                 socials.append({"platform": {"youtube": "YouTube", "tiktok": "TikTok", "linkedin": "LinkedIn"}.get(platform, platform.title()), "url": link})
         record = {
             "id": f"osm-{kind}-{item.id}", "name": name.strip(), "area": area,
-            "category": category, "phone": phone, "email": email,
+            "category": category,
             "source": f"https://www.openstreetmap.org/{kind}/{item.id}",
             "website": {"status": "unknown" if website else "unlisted"},
         }
+        if phone:
+            record["phone"] = phone
+        if email:
+            record["email"] = email
         if address:
             record["address"] = address
         if website:
@@ -104,7 +106,7 @@ def main():
     extract = BusinessExtract(json.loads(groups.read_text(encoding="utf-8")))
     extract.apply_file(source, locations=True)
     if not extract.records:
-        raise RuntimeError("No qualifying Bangladesh business records")
+        raise RuntimeError("No mapped Bangladesh business records")
     records = sorted(extract.records, key=lambda item: hashlib.sha256(item["id"].encode()).hexdigest())
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(records, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
